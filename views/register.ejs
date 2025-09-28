@@ -23,7 +23,7 @@
 
                 <div class="mb-3">
                     <label for = "registro_correo" class = "form-label">Correo electrónico</label>
-                    <input class = "form-control" id = "registro_correo" type = "text" name = "correo" required>
+                    <input class = "form-control" id = "registro_correo" type = "email" name = "correo" required>
                 </div>
 
                 <div class="mb-3">
@@ -32,8 +32,12 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label for = "registro_concesionario" class = "form-label">Concesionario</label>
+                    <label for = "registro_telefono" class = "form-label">Teléfono</label>
+                    <input class = "form-control" id = "registro_telefono" name = "telefono" type="tel">
+                </div>
 
+                <div class="mb-3">
+                    <label for = "registro_concesionario" class = "form-label">Concesionario</label>
                     <select>
                         <option selected disabled value="">Selecciona un concesionario</option>
                         <% concesionarios.forEach(concesionario =>{ %>
