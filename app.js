@@ -30,29 +30,29 @@ app.set('view engine', 'ejs');
 
 
 // Simulated database (in-memory)
-const usuarios = [
-    { username: 'admin', password: 'admin' }
-];
-app.locals.usuarios = usuarios;
+// const usuarios = [
+//     { username: 'admin', password: 'admin' }
+// ];
+// app.locals.usuarios = usuarios;
 
-const productos = require('./data/productos.json');
-const productosDetalle = require('./data/productos_detalle.json');
-app.locals.productos = productos;
-app.locals.productosDetalle = productosDetalle;
+// const productos = require('./data/productos.json');
+// const productosDetalle = require('./data/productos_detalle.json');
+// app.locals.productos = productos;
+// app.locals.productosDetalle = productosDetalle;
 
 // Routes
-const mainRoutes = require('./routes/index');
+// const mainRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
-const usersRoutes = require('./routes/users');
-const vehiclesRoutes = require('./routes/vehicles');
-const adminRoutes = require('./routes/admin')
+// const usersRoutes = require('./routes/users');
+// const vehiclesRoutes = require('./routes/vehicles');
+// const adminRoutes = require('./routes/admin')
 
 
-app.use('/', mainRoutes);
+// app.use('/', mainRoutes);
 app.use('/', authRoutes);
-app.use('/', usersRoutes);
-app.use('/', vehiclesRoutes);
-app.use('/', adminRoutes);
+// app.use('/', usersRoutes);
+// app.use('/', vehiclesRoutes);
+// app.use('/', adminRoutes);
 
 // Server
 app.listen(PORT, () => {

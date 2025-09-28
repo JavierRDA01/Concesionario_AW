@@ -11,3 +11,25 @@ a {
     text-decoration: none;
     color: #1b5e20;
 }
+
+.rojo {
+    color: #ff002b;
+    transition: color 0.2s ease-in-out;
+    text-decoration: none;
+
+}
+
+a.rojo:hover,
+a.rojo:focus {
+    color: #d60026; 
+    text-decoration: none;
+}
+
+.verde{
+    color: #2e7d32;
+}
+
+.verde:hover,
+.verde:focus {
+    color: #1b5e20;
+}

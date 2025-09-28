@@ -7,47 +7,62 @@
     <link rel = "stylesheet" href="/css/bootstrap.min.css">
     <title>Document</title>
 </head>
-<body class = "d-flex justify-content-center flex-column">
+<body class="d-flex justify-content-center align-items-start min-vh-100 bg-light">
 
-    <div class="d-flex justify-content-center">
-        <form action="/" method = "POST">
-            <div class="form-title">
 
+<div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5" >     
+    
+    <legend class="text-center mb-4">Registrarme en <b class = "rojo"> WibbleUCM</b></legend>
+    <form class="row" action="/" method = "POST">
+
+            <div class="mb-3">
+                <label for = "registro_nombre_completo" class="form-label">Nombre completo</label>
+                <input class = "form-control" id = "registro_nombre_completo" type="text" name = "nombre_completo" required>
             </div>
 
-            <div class="form-body">
-                <div class="mb-3">
-                    <label for = "registro_nombre_completo" class="form-label">Nombre completo</label>
-                    <input class = "form-control" id = "registro_nombre_completo" type="text" name = "nombre_completo" required>
-                </div>
+            <div class="mb-3">
+                <label for = "registro_correo" class = "form-label">Correo electrónico</label>
+                <input class = "form-control" id = "registro_correo" type = "email" name = "correo" placeholder="Debe acabar en @ucm.es" required>
+            </div>
 
-                <div class="mb-3">
-                    <label for = "registro_correo" class = "form-label">Correo electrónico</label>
-                    <input class = "form-control" id = "registro_correo" type = "email" name = "correo" required>
-                </div>
-
-                <div class="mb-3">
-                    <label for = "registro_password" class="form-label">Contraseña</label>
-                    <input type = "password" class = "form-control" id = "registro_password" name = "password" required>
-                </div>
-                
-                <div class="mb-3">
-                    <label for = "registro_telefono" class = "form-label">Teléfono</label>
-                    <input class = "form-control" id = "registro_telefono" name = "telefono" type="tel">
-                </div>
-
-                <div class="mb-3">
-                    <label for = "registro_concesionario" class = "form-label">Concesionario</label>
-                    <select>
-                        <option selected disabled value="">Selecciona un concesionario</option>
-                        <% concesionarios.forEach(concesionario =>{ %>
-                            <option value = "<%= concesionario.id %>"><%= concesionario.nombre %></option>
-                        <% })%>
-                    </select>
-                </div>
+            <div class="mb-3">
+                <label for = "registro_password" class="form-label">Contraseña</label>
+                <input type = "password" class = "form-control" id = "registro_password" name = "password" required>
             </div>
             
+            <div class="mb-3">
+                <label for = "registro_telefono" class = "form-label">Teléfono</label>
+                <input class = "form-control" id = "registro_telefono" name = "telefono" placeholder="Ej: 123456789" type="tel">
+            </div>
+            
+            <div class="mb-3">
+                <label for="registro_rol" class="form-label">Rol</label>
+                <select id="registro_rol" name="registro_rol" class="form-select">
+                    <option value="Empleado">Empleado</option>
+                    <option value="Administrador">Administrador</option>
+                </select>                
+            </div>
 
+
+            <div class="mb-3">
+                <label for = "registro_concesionario" class = "form-label">Concesionario</label>
+                <select id="registro_concesionario" name="concesionario" class="form-select">
+                    <option selected disabled value="">Selecciona un concesionario</option>
+                    <% concesionarios.forEach(concesionario =>{ %>
+                        <option value = "<%= concesionario.id %>"><%= concesionario.nombre %></option>
+                    <% })%>
+                </select>
+            </div>
+            
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-danger w-50">Registrarme</button>
+            </div>
+
+            <div class="col-12 text-center mt-3">
+                <span>¿Ya dispones de una cuenta?
+                    <a href="/usuarios/login" class="rojo">Iniciar Sesión</a>
+                </span>
+            </div>
         </form>
     </div>
     
