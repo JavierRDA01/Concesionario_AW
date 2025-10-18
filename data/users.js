@@ -19,7 +19,20 @@ const registrarUsuario = (data, callback) => {
     });
 };
 
+const obtenerUsuarioPorCorreo = (correo, callback) =>{
+    const sql = "SELECT nombre, correo, contraseña, rol, telefono, id_concesionario, preferencias_accesibilidad FROM usuarios WHERE correo = ?";
+    
+    pool.query(sql, correo, (err, result)=>{
+        if(err){
+            console.error("Error al obtener al usuario por correo: ", err.message);
+            return callback(err);
+        }
+        return callback(null,result);
+    });
+}
+
 
 module.exports = {
-    registrarUsuario,    
+    registrarUsuario,
+    obtenerUsuarioPorCorreo
 }

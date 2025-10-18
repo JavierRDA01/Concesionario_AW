@@ -4,6 +4,8 @@ const path = require('path');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const mysqlSession = require("express-mysql-session");
+const MySQLStore = mysqlSession(session);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,10 +15,19 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+const sessionStore = new MySQLStore({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "wibble_aw"
+});
+
 app.use(session({
-    secret: 'ecomarket-exam',
+    secret: 'wibbleUCM',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: sessionStore
 }));
 
 // Static files
@@ -56,5 +67,5 @@ app.use('/', authRoutes);
 
 // Server
 app.listen(PORT, () => {
-    console.log(`EcoMarket EXAM app running at http://localhost:${PORT}`);
+    console.log(`WibbleUCM app running at http://localhost:${PORT}`);
 });

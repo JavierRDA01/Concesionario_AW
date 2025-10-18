@@ -50,7 +50,7 @@
             
             <div class="mb-3">
                 <label for="registro_rol" class="form-label">Rol</label>
-                <select id="registro_rol" name="registro_rol" class="form-select">
+                <select id="registro_rol" name="rol" class="form-select">
                     <option value="Empleado">Empleado</option>
                     <option value="Administrador">Administrador</option>
                 </select>                
@@ -62,7 +62,7 @@
                 <select id="registro_concesionario" name="concesionario" class="form-select">
                     <option selected disabled value="">Selecciona un concesionario</option>
                     <% concesionarios.forEach(concesionario =>{ %>
-                        <option value = "<%= concesionario.id %>"><%= concesionario.nombre %></option>
+                        <option value = "<%= concesionario.id_concesionario %>"><%= concesionario.nombre %></option>
                     <% })%>
                 </select>
             </div>

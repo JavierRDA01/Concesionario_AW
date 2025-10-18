@@ -6,6 +6,27 @@ const dealershipsQueries = require("../data/dealerships");
 const { check, validationResult } = require('express-validator'); 
 
 
+const comprobarCorreoRepetido = (correo) => {
+    
+    // Dado que es una llamada a la base de datos, la llamada debe ser asíncrona por lo que realizamos una promesa
+    return new Promise((resolve, reject) => {
+        
+        userQueries.obtenerUsuarioPorCorreo(correo, (err, usuarioEncontrado) => {
+            
+            if (err) {
+                // Error de base de datos
+                return reject(new Error('Error en el servidor al comprobar el correo'));
+            }
+            if (usuarioEncontrado && usuarioEncontrado.length > 0) {
+                // Se ha encontrado el correo, rechazamos la promesa
+                return reject(new Error(`El correo ${correo} ya está registrado`));
+            }
+            
+            //Correo no encontrado. Pasamos la validación.
+            resolve(true);
+        });
+    });
+};
 authRouter.get('/registro', (req, res)=>{
 
     dealershipsQueries.obtenerConcesionarios((err, concesionarios)=>{
@@ -23,8 +44,12 @@ authRouter.get('/registro', (req, res)=>{
 
 authRouter.post('/registro',
     // Validación del correo
-    check("correo", "Solo se admiten correos corporativos (@ucm.es).").matches(/^[A-Za-z0-9._%+-]+@ucm.es$/),
-    //Validación de la contraseña: mínimo 8 caracteres
+    check("correo", "Solo se admiten correos corporativos (@ucm.es).")
+            .isEmail()
+            .matches(/^[A-Za-z0-9._%+-]+@ucm.es$/),
+    // Comprueba que el correo no esté registrado previamente
+    check("correo", "El correo ya estaba registrado previamente.").custom(comprobarCorreoRepetido),
+    // Validación de la contraseña: mínimo 8 caracteres
     check("password", "La contraseña debe tener como mínimo 8 caracteres.").isLength({min:8}),
     //Validación de la contraseña: mínimo 1 mayúscula
     check("password", "La contraseña debe incluir por lo menos 1 mayúscula.").matches(/[A-Z]/),
@@ -35,7 +60,7 @@ authRouter.post('/registro',
     (req, res)=>{
         
     const errors = validationResult(req);
-    if(errors){
+    if(!errors.isEmpty()){
         dealershipsQueries.obtenerConcesionarios((err, concesionarios)=>{
         if (err) {
             console.error("Error al obtener los concesionarios:", err);
@@ -48,7 +73,27 @@ authRouter.post('/registro',
         });
     })
     }
+    else{
+        const {nombre_completo, correo, password, telefono, rol, concesionario} = req.body;
 
+        const usuarioARegistrar = {
+            nombre_completo : nombre_completo,
+            correo: correo,
+            password: password,
+            rol:rol,
+            telefono: telefono,
+            id_concesionario: concesionario,
+            preferencias_accesibilidad: 0
+        }
+
+        userQueries.registrarUsuario(usuarioARegistrar,(err, resultado) =>{
+            if(err){
+                console.error("Error al registrar al usuario:", err);
+                return res.json("error", { mensaje: "Error al registrar al usuario." });
+            }                
+            return res.json({exito: "La consulta tuvo éxito"});
+        })
+    }
 })
 
 module.exports = authRouter;
