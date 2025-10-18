@@ -13,7 +13,20 @@
 <div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5" >     
     
     <legend class="text-center mb-4">Registrarme en <b class = "rojo"> WibbleUCM</b></legend>
-    <form class="row" action="/" method = "POST">
+     <% if(errors && errors.length > 0){ %>
+        <div class = "alert alert-danger alert-dismissible fade show" role = "alert">
+            <h4 class="alert-heading">¡Error de Validación!</h4>
+            <hr>
+            <ul>
+                <% errors.forEach(error => { %>
+                    <li><%= error.msg %></li>
+                <% }) %>
+            </ul>
+
+        </div>
+    <% } %>
+    <form class="row" action="/registro" method = "POST">
+
 
             <div class="mb-3">
                 <label for = "registro_nombre_completo" class="form-label">Nombre completo</label>
@@ -65,6 +78,6 @@
             </div>
         </form>
     </div>
-    
+    <script src="js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
