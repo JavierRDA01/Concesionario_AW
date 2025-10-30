@@ -4,6 +4,7 @@ const authRouter = express.Router();
 const userQueries = require('../data/users');
 const dealershipsQueries = require("../data/dealerships");
 const { check, validationResult } = require('express-validator'); 
+const bcrypt = require('bcryptjs');
 
 
 const comprobarCorreoRepetido = (correo) => {
@@ -75,25 +76,39 @@ authRouter.post('/registro',
     }
     else{
         const {nombre_completo, correo, password, telefono, rol, concesionario} = req.body;
+        
+        const saltRounds = 10;
 
-        const usuarioARegistrar = {
-            nombre_completo : nombre_completo,
-            correo: correo,
-            password: password,
-            rol:rol,
-            telefono: telefono,
-            id_concesionario: concesionario,
-            preferencias_accesibilidad: 0
-        }
+        bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
+            
+            if (err) {
+                console.error("Error al hashear la contraseña:", err);
+                return res.status(500).render("error", { mensaje: "Error interno al procesar el registro." });
+            }
 
-        userQueries.registrarUsuario(usuarioARegistrar,(err, resultado) =>{
-            if(err){
-                console.error("Error al registrar al usuario:", err);
-                return res.json("error", { mensaje: "Error al registrar al usuario." });
-            }                
-            return res.json({exito: "La consulta tuvo éxito"});
-        })
+            const usuarioARegistrar = {
+                nombre_completo : nombre_completo,
+                correo: correo,
+                password: hashedPassword, 
+                rol:rol,
+                telefono: telefono,
+                id_concesionario: concesionario,
+                preferencias_accesibilidad: 0
+            };
+            
+            console.log(usuarioARegistrar);
+            
+            userQueries.registrarUsuario(usuarioARegistrar,(err, resultado) =>{
+                if(err){
+                    console.error("Error al registrar al usuario:", err);
+                    return res.status(500).render("error", { mensaje: "Error al registrar al usuario." });
+                } 
+                
+                // return res.redirect('/login'); 
+                return res.json({exito: "La consulta tuvo éxito"});
+            });
+        });
     }
-})
+});
 
 module.exports = authRouter;
