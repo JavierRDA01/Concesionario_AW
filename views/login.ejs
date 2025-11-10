@@ -10,8 +10,15 @@
 <body class = "d-flex justify-content-center">
     <div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5">
         <legend class="text-center mb-4">Iniciar sesión en <b class = "rojo"> WibbleUCM</b></legend>
-        <form class = "row" action = "POST" method = "/login">
-            <div class="mb-3">
+        
+        <% if(error){ %>
+            <div class = "alert alert-danger" role = "alert">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <form class = "row" action = "/login" method = "POST">
+                <div class="mb-3">
                 <label for = "login_correo" class = "form-label">Correo</label>
                 <input class = "form-control" id = "login_correo" name = "correo" type = "text" required>
             </div>
