@@ -30,6 +30,11 @@ app.use(session({
     store: sessionStore
 }));
 
+app.use((req, res, next) => {
+    res.locals.user = req.session.user;
+    next();
+});
+
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -37,7 +42,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-
+app.get('/', (req ,res)=>{
+    res.render('barraNavegadora')
+})
 
 
 // Simulated database (in-memory)

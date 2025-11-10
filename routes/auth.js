@@ -185,7 +185,7 @@ authRouter.post('/login', (req, res)=>{
                         return res.redirect('/admin/dashboard'); 
                     } else {
                         // Redirige al dashboard de empleado (deberás crear esta ruta)
-                        return res.redirect('/dashboard'); 
+                        return res.redirect('/users/dashboard'); 
                     }
 
                 } else {
