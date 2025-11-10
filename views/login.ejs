@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel = "stylesheet" href = "/css/style.css">
+    <link rel = "stylesheet" href = "/css/bootstrap.min.css">
+    <title>Login de Usuario - WibbleUCM</title>
+</head>
+<body class = "d-flex justify-content-center">
+    <div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5">
+        <legend class="text-center mb-4">Iniciar sesión en <b class = "rojo"> WibbleUCM</b></legend>
+        <form class = "row" action = "POST" method = "/login">
+            <div class="mb-3">
+                <label for = "login_correo" class = "form-label">Correo</label>
+                <input class = "form-control" id = "login_correo" name = "correo" type = "text" required>
+            </div>
+            <div class="mb-3">
+                <label for = "login_password" class = "form-label">Contraseña</label>
+                <input type = "password" id = "login_password" class = "form-control" name = "password" required>
+            </div>
+            <div class="d-flex justify-content-center">
+                <button type = "submit" class = "btn btn-danger w-50">Iniciar Sesión</button>
+            </div>
+        </form>
+    </div>
+    <script src="js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

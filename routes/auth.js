@@ -111,4 +111,27 @@ authRouter.post('/registro',
     }
 });
 
+authRouter.get('/login', (req, res) => {
+    res.render('login');
+});
+
+authRouter.post('login', (req, res)=>{
+    const {correo, password} = req.body
+
+    userQueries.obtenerUsuarioPorCorreo(correo, (error, usuario)=>{
+        if(error){
+            console.error("Error al obtener al usuario:", err);
+            return res.status(500).render("error", { mensaje: "Error al obtener al usuario." });
+        }
+
+        if(usuario){
+
+        }
+        else{
+            console.log("El usuario no se ha registrado");
+            
+        }
+    })
+});
+
 module.exports = authRouter;
