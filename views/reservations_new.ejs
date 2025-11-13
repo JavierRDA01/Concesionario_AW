@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <title>Reservar Vehículo - WibbleUCM</title>
+</head>
+<body class="bg-light">
+    <% include ./barraNavegadora.ejs %>
+
+    <div class="container my-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Reservar vehículo</h4>
+                
+                <% if (success_msg) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <%= success_msg %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar">Cerrar</button>
+                </div>
+                <% } %>
+
+                <% if(errors && errors.length){ %>
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        <% errors.forEach(e => { %>
+                            <li><%= e.msg %></li>
+                        <% }) %>
+                    </ul>
+                </div>
+                <% } %>
+
+                <form action="/reservations/new" method="POST" class="row g-3">
+                        <!-- Seleccionar Vehículo -->
+
+                    <div class="col-12">
+                        <label for="email" class="form-label">Correo electrónico</label>
+                        <input type="email" id="email" name="correo" class="form-control" required value="<%= oldInput ? oldInput.correo : '' %>" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="vehiculo" class="form-label">Vehículo</label>
+                        <select id="vehiculo" name="id_vehiculo" class="form-select" required>
+                            <option value="" disabled selected>Selecciona un vehículo</option>
+                            <% vehiculos.forEach(v => { %>
+                                <option value="<%= v.id_vehiculo %>"><%= v.marca %> <%= v.modelo %> - Matrícula: <%= v.matricula %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <!-- Fecha inicio / fin -->
+                    <div class="col-md-6">
+                        <label for="fecha_inicio" class="form-label">Fecha inicio</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control"  value="<%= oldInput ? oldInput.fecha_inicio : '' %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="fecha_fin" class="form-label">Fecha fin</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin" class="form-control"  value="<%= oldInput ? oldInput.fecha_fin : '' %>" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="kilometros_recorridos" class="form-label">Kilómetros recorridos</label>
+                        <input 
+                            type="number" 
+                            id="kilometros_recorridos" 
+                            name="kilometros_recorridos" 
+                            class="form-control" 
+                            value="<%= oldInput ? oldInput.kilometros_recorridos : '' %>" 
+                            min="0" 
+                            step="1">
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="incidencias_reportadas" class="form-label">Incidencias reportadas</label>
+                        <textarea id="incidencias_reportadas" name="incidencias_reportadas" rows="3" class="form-control"><%= oldInput ? oldInput.incidencias_reportadas : '' %></textarea>
+                    </div>
+
+                    <div class="col-12 text-center">
+                        <button class="btn btn-danger w-50" type="submit">Enviar reserva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

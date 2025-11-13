@@ -65,11 +65,17 @@ const authRoutes = require('./routes/auth');
 // const vehiclesRoutes = require('./routes/vehicles');
 // const adminRoutes = require('./routes/admin')
 
+const reservationsRoutes = require('./routes/reservations');
+
+/* ... más abajo, después de app.use('/', authRoutes); */
+
 
 // app.use('/', mainRoutes);
 app.use('/', authRoutes);
+app.use('/reservations', reservationsRoutes);
+
 // app.use('/', usersRoutes);
-// app.use('/', vehiclesRoutes);
+// para mensaje app.use('/', vehiclesRoutes);
 // app.use('/', adminRoutes);
 
 // Server
