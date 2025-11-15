@@ -2,20 +2,17 @@ const pool = require('./connection');
 
 const crearReserva = (data, callback) => {
     const sql = `INSERT INTO reservas
-        (id_usuario, id_vehiculo, id_concesionario, fecha_inicio, fecha_fin, nombre_contacto, correo_contacto, telefono_contacto, notas, estado)
+        (id_usuario, id_vehiculo, fecha_inicio, fecha_fin, estado, kilometros_recorridos, incidencias_reportadas)
         VALUES (?,?,?,?,?,?,?,?,?,?)`;
 
     const values = [
         data.id_usuario,
         data.id_vehiculo,
-        data.id_concesionario,
         data.fecha_inicio,
         data.fecha_fin,
-        data.nombre,
-        data.correo,
-        data.telefono,
-        data.notas,
-        data.estado
+        data.estado,
+        data.kilometros_recorridos,
+        data.incidencias_reportadas
     ];
 
     pool.query(sql, values, (err, result) => {

@@ -17,7 +17,13 @@ router.get('/new', (req, res) => {
                 console.error(errC);
                 return res.status(500).render('reservations_new', { vehiculos: [], concesionarios: [], errors: [{msg: 'Error cargando concesionarios'}], oldInput: {} });
             }
-            res.render('reservations_new', { vehiculos, concesionarios, errors: null, oldInput: {} });
+            res.render('reservations_new', {
+                vehiculos,
+                concesionarios,
+                errors: null,
+                oldInput: {},
+                success_msg: null
+             });
         });
     });
 });
@@ -28,12 +34,11 @@ router.post('/new', (req, res) => {
     const data = {
         id_usuario: req.user ? req.user.id_usuario : null, 
         id_vehiculo: req.body.id_vehiculo,
-        correo: req.body.correo,
         fecha_inicio: req.body.fecha_inicio,
         fecha_fin: req.body.fecha_fin,
+        estado: 'activa',
         kilometros_recorridos: req.body.kilometros_recorridos || 0,
-        incidencias_reportadas: req.body.incidencias_reportadas || null,
-        estado: 'activo'
+        incidencias_reportadas: req.body.incidencias_reportadas || null
     };
 
     reservationsQueries.crearReserva(data, (err) => {
@@ -44,7 +49,8 @@ router.post('/new', (req, res) => {
                 return res.status(500).render('reservations_new', { 
                     vehiculos: vehiculos || [], 
                     errors: [{ msg: 'Error al guardar la reserva' }], 
-                    oldInput 
+                    oldInput,
+                    success_msg: null
                 });
             });
             return;

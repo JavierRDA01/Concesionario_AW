@@ -9,7 +9,7 @@ const obtenerVehiculosDisponibles = (callback) => {
     const sql = `
         SELECT id_vehiculo, matricula, marca, modelo,año_matriculacion, numero_plazas, autonomia_km, color, imagen, estado, id_concesionario
         FROM vehiculos
-        WHERE estado = 'activo'
+        WHERE estado = 'disponible'
     `;
     pool.query(sql, (err, result) => {
         if (err) {
