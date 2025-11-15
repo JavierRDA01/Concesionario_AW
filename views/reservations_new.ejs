@@ -96,7 +96,6 @@
                 <div class="modal-body">
                     <p>Por favor, revisa los datos de tu reserva antes de confirmar:</p>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><strong>Correo:</strong> <span id="modal_email"></span></li>
                         <li class="list-group-item"><strong>Vehículo:</strong> <span id="modal_vehiculo"></span></li>
                         <li class="list-group-item"><strong>Desde:</strong> <span id="modal_inicio"></span></li>
                         <li class="list-group-item"><strong>Hasta:</strong> <span id="modal_fin"></span></li>
@@ -113,43 +112,57 @@
         </div>
     </div>
 
-    <script src="/js/bootstrap.bundle.min.js"></script>
+   <script src="/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Configurar fecha mínima
+    const fechaInicioInput = document.getElementById('fecha_inicio');
+    if(fechaInicioInput) {
+        fechaInicioInput.min = new Date().toISOString().split('T')[0];
+    }
 
-    <script>
-        // 1. Bloquear fechas pasadas al cargar
-        document.getElementById('fecha_inicio').min = new Date().toISOString().split('T')[0];
+    function abrirModalConfirmacion() {
+        console.log("Forzando apertura del modal...");
 
-        // 2. Lógica del Modal
-        function abrirModalConfirmacion() {
-            const form = document.getElementById('formReserva');
-            
-            // Primero validamos que los campos obligatorios (HTML5) estén llenos
-            if (!form.checkValidity()) {
-                form.reportValidity(); // Muestra los mensajes de error nativos del navegador
-                return;
-            }
+        // 1. RECOLECTAR DATOS (Con protección por si están vacíos)
+        const inicioVal = document.getElementById('fecha_inicio').value || "Sin fecha";
+        const finVal = document.getElementById('fecha_fin').value || "Sin fecha";
+        
+        const vehiculoSelect = document.getElementById('vehiculo');
+        let vehiculoTexto = "No seleccionado";
+        if (vehiculoSelect.selectedIndex >= 0) {
+            vehiculoTexto = vehiculoSelect.options[vehiculoSelect.selectedIndex].text;
+        }
 
-            // Si es válido, capturamos los datos para el resumen
-            const email = document.getElementById('email').value;
-            const vehiculoSelect = document.getElementById('vehiculo');
-            const vehiculoTexto = vehiculoSelect.options[vehiculoSelect.selectedIndex].text;
-            const inicio = document.getElementById('fecha_inicio').value;
-            const fin = document.getElementById('fecha_fin').value;
+        // 2. PEGAR DATOS EN EL HTML DEL MODAL
+        document.getElementById('modal_vehiculo').textContent = vehiculoTexto;
+        document.getElementById('modal_inicio').textContent = inicioVal;
+        document.getElementById('modal_fin').textContent = finVal;
 
-            // Rellenamos el modal
-            document.getElementById('modal_email').textContent = email;
-            document.getElementById('modal_vehiculo').textContent = vehiculoTexto;
-            document.getElementById('modal_inicio').textContent = inicio;
-            document.getElementById('modal_fin').textContent = fin;
-
-            // Mostramos el modal manualmente usando Bootstrap
-            const modal = new bootstrap.Modal(document.getElementById('modalConfirmacion'));
+        // 3. ABRIR MODAL DIRECTAMENTE (Sin checkValidity)
+        try {
+            const modalElement = document.getElementById('modalConfirmacion');
+            const modal = new bootstrap.Modal(modalElement);
             modal.show();
+        } catch (error) {
+            alert("Error al abrir modal: " + error.message);
+            console.error(error);
         }
+    }
 
-        function enviarFormularioReal() {
-            document.getElementById('formReserva').submit();
+    function enviarFormularioReal() {
+        const form = document.getElementById('formReserva');
+        // Ahora sí validamos antes de enviar de verdad
+        if (form.checkValidity()) {
+            form.submit();
+        } else {
+            alert("Por favor, rellena todos los campos obligatorios antes de confirmar.");
+            // Cerramos el modal manualmente si falla la validación final
+            const modalElement = document.getElementById('modalConfirmacion');
+            const modal = bootstrap.Modal.getInstance(modalElement); 
+            modal.hide();
+            form.reportValidity();
         }
-    </script>
+    }
+</script>
 </body>
 </html>

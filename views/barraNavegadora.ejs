@@ -1,39 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel = "stylesheet" href = "/css/style.css">
-    <link rel = "stylesheet" href = "/css/bootstrap.min.css">
-    <title>Login de Usuario - WibbleUCM</title>
-</head>
-<body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container-fluid">
         
-        <!-- Marca de la empresa -->
         <a class="navbar-brand" href="/">
             <b class="rojo">Wibble</b>UCM
         </a>
         
-        <!-- Botón Hamburguesa para móvil -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Contenido Colapsable -->
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             
-            <!-- Enlaces de la Izquierda (Menú principal) -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link" href="/">Inicio</a>
                 </li>
-                
-                <!-- 
-                  Estos enlaces deberíamos mostrarlos solo si el usuario está logueado.
-                  Por ahora, los dejamos visibles para maquetar.
-                -->
                 <li class="nav-item">
                     <a class="nav-link" href="/vehicles">Vehículos Disponibles</a>
                 </li>
@@ -43,60 +24,29 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/my-reservations">Mis Reservas</a>
                 </li>
-                
-                <!-- 
-                  Este enlace deberíamos mostrarlo solo si el usuario es 'admin'.
-                -->
                  <li class="nav-item">
                     <a class="nav-link" href="/admin/dashboard">Administración</a>
                 </li>
             </ul>
             
-            <!-- Enlaces de la Derecha (Accesibilidad y Usuario) -->
             <ul class="navbar-nav ms-auto">
-                
-                <!-- Botón de Accesibilidad (Modal) -->
                 <li class="nav-item">
                     <button class="btn btn-outline-info btn-sm me-2" type="button" data-bs-toggle="modal" data-bs-target="#accessibilityModal">
                         Accesibilidad
                     </button>
                 </li>
 
-                <!-- 
-                  Estos enlaces deberían ocultarse si el usuario SÍ está logueado.
-                -->
                 <li class="nav-item">
                     <a class="nav-link" href="/login">Iniciar Sesión</a>
                 </li>
                 <li class="nav-item">
                     <a class="btn btn-danger btn-sm" href="/registro">Registro</a>
                 </li>
-
-                <!-- 
-                  Este bloque debería mostrarse solo si el usuario SÍ está logueado.
-                  Lo dejamos comentado como referencia.
-                
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Perfil de Usuario
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
-                        <li><a class="dropdown-item" href="/profile">Mi Perfil</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/logout">Cerrar Sesión</a></li>
-                    </ul>
-                </li>
-                -->
             </ul>
         </div>
     </div>
 </nav>
 
-<!-- 
-  Modal de Accesibilidad (requerido por el PDF)
-  Asegúrate de que este HTML esté en la página (puedes ponerlo al final, antes de cerrar <body>)
-  para que el botón "Accesibilidad" pueda abrirlo.
--->
 <div class="modal fade" id="accessibilityModal" tabindex="-1" aria-labelledby="accessibilityModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -105,7 +55,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <p>Aquí irán las opciones de accesibilidad:</p>
+                <p>Opciones de accesibilidad:</p>
                 <ul>
                     <li>Cambio de contraste</li>
                     <li>Tamaño de fuente</li>
@@ -119,7 +69,3 @@
         </div>
     </div>
 </div>
-</body>
-<!-- 
-  FIN DE LA BARRA DE NAVEGACIÓN
--->
