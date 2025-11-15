@@ -1,9 +1,20 @@
 const pool = require('./connection');
-const mysql = require('mysql');
+
+const saveDealership = async (dealership, callback) => {
+    const sql = "INSERT INTO concesionarios (nombre, ciudad, direccion, telefono_contacto) VALUES (?, ?, ?, ?)";
+    const values = [dealership.nombre, dealership.ciudad, dealership.direccion, dealership.telefonoContacto];
+    pool.query(sql, values, (err, result) => {
+        if (err) {
+            console.error("Error al guardar el concesionario: ", err.message);
+            return callback(err);
+        }
+        callback(null, result.insertId);
+    });
+}
 
 const obtenerConcesionarios = (callback)=>{
     //Query para obtener todos los concesionarios de la bbdd
-    const sql = "SELECT id_concesionario, nombre, ciudad, direccion, telefono_contacto FROM concesionarios";
+    const sql = "SELECT id_concesionario, nombre, ciudad, direccion, telefono FROM concesionarios";
 
     pool.query(sql, (err, result)=>{
         if(err){
@@ -18,5 +29,6 @@ const obtenerConcesionarios = (callback)=>{
 
 
 module.exports = {
+    saveDealership,
     obtenerConcesionarios
 }
