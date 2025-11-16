@@ -1,6 +1,8 @@
 const express = require('express');
-const router = express.Router();
+const adminRouter = express.Router();
 const adminQueries = require('../data/admin'); // Importamos el archivo que acabamos de crear
+const vehiclesQueries = require('../data/vehicles');
+const dealershipsQueries = require('../data/dealerships'); // Asumo que existe, si no, avísame
 
 // Middleware para proteger la ruta: Solo entra si es admin
 const verificarAdmin = (req, res, next) => {
@@ -13,7 +15,7 @@ const verificarAdmin = (req, res, next) => {
 };
 
 // GET http://localhost:3000/admin/dashboard
-router.get('/dashboard', verificarAdmin, (req, res) => {
+adminRouter.get('/dashboard', verificarAdmin, (req, res) => {
     
     // Llamamos a la función de base de datos
     adminQueries.obtenerEstadisticasDashboard((err, stats) => {
@@ -31,4 +33,38 @@ router.get('/dashboard', verificarAdmin, (req, res) => {
     });
 });
 
-module.exports = router;
+adminRouter.get('/vehicles', verificarAdmin, (req, res) => {
+    // Necesitamos dos cosas: la lista de coches y la lista de concesionarios (para el modal)
+    vehiclesQueries.obtenerTodosLosVehiculos((err, vehiculos) => {
+        if (err) return res.status(500).send("Error cargando vehículos");
+        
+        dealershipsQueries.obtenerConcesionarios((errC, concesionarios) => {
+            if (errC) return res.status(500).send("Error cargando concesionarios");
+
+            res.render('admin_vehicles', {
+                vehiculos: vehiculos,
+                concesionarios: concesionarios,
+                user: req.session.user,
+                success_msg: null,
+                error_msg: null
+            });
+        });
+    });
+});
+
+// 2. PROCESAR EL ALTA DE VEHÍCULO
+adminRouter.post('/vehicles/new', verificarAdmin, (req, res) => {
+    const newCar = req.body;
+    
+    vehiclesQueries.crearVehiculo(newCar, (err) => {
+        if (err) {
+            console.error(err);
+            // En una app real, aquí deberíamos volver a renderizar con los errores
+            // Para simplificar, redirigimos con error (o podrías renderizar de nuevo)
+            return res.redirect('/admin/vehicles?error=1');
+        }
+        res.redirect('/admin/vehicles?success=1');
+    });
+});
+
+module.exports = adminRouter;
