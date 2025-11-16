@@ -31,7 +31,45 @@ const obtenerVehiculoPorId = (id, callback) => {
     });
 };
 
+const crearVehiculo = (data, callback) => {
+    const sql = `
+        INSERT INTO Vehiculos 
+        (matricula, marca, modelo, año_matriculacion, numero_plazas, autonomia_km, color, imagen, estado, id_concesionario) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'disponible', ?)
+    `;
+    
+    const values = [
+        data.matricula,
+        data.marca,
+        data.modelo,
+        data.anio,
+        data.plazas,
+        data.autonomia,
+        data.color,
+        data.imagen || 'default_car.jpg',
+        data.id_concesionario
+    ];
+
+    pool.query(sql, values, (err, result) => {
+        if (err) return callback(err);
+        callback(null, result);
+    });
+};
+const obtenerTodosLosVehiculos = (callback) => {
+        const sql = `
+            SELECT v.*, c.nombre as nombre_concesionario 
+            FROM Vehiculos v 
+            LEFT JOIN Concesionarios c ON v.id_concesionario = c.id_concesionario
+            ORDER BY v.id_vehiculo DESC
+        `;
+
+        pool.query(sql, [], callback);
+    }
+
 module.exports = {
     obtenerVehiculosDisponibles,
-    obtenerVehiculoPorId
+    obtenerVehiculoPorId,
+    crearVehiculo,
+    obtenerTodosLosVehiculos
+
 };
