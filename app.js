@@ -61,6 +61,7 @@ app.get('/', (req ,res)=>{
 // Routes
 // const mainRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
+const dealershipRoutes = require('./routes/dealerships');
 // const usersRoutes = require('./routes/users');
 // const vehiclesRoutes = require('./routes/vehicles');
 const adminRoutes = require('./routes/admin')
@@ -73,6 +74,7 @@ const reservationsRoutes = require('./routes/reservations');
 
 // app.use('/', mainRoutes);
 app.use('/', authRoutes);
+app.use('/dealership', dealershipRoutes)
 app.use('/reservations', reservationsRoutes);
 app.use('/admin', adminRoutes);
 
