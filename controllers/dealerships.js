@@ -1,10 +1,12 @@
-const dealershipService = require("../services/dealerships");
-
-exports.getCreateDealershipForm = (req, res) => {
-  res.render("createDealership", { errors: {} });
-}
+const dealershipDataAccess = require("../data/dealerships");
 
 exports.createDealership = async (req, res) => {
-  await dealershipService.createDealership(req.body);
-  res.render("createDealership", { errors: {}, successMessage: "Concesionario creado exitosamente" });
+  await dealershipDataAccess.saveDealership(req.body);
+  const concesionarios = await dealershipDataAccess.obtenerConcesionarios();
+  res.render("admin_dealerships", { errors: {}, user: req.session.user, openModal: false, concesionarios: concesionarios });
 };
+
+exports.getAllDealerships = async (req, res) => {
+  const concesionarios = await dealershipDataAccess.obtenerConcesionarios();
+  res.render("admin_dealerships", { errors: {}, user: req.session.user, openModal: false, concesionarios: concesionarios });
+}
