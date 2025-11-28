@@ -54,8 +54,14 @@
                                                     <%= c.telefono_contacto %>
                                                 </td>
                                                 <td class="text-end">
-                                                    <button class="btn btn-sm btn-outline-primary"><i
-                                                            class="bi bi-pencil"></i></button>
+                                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEditarConcesionario"
+                                                        data-id="<%= c.id_concesionario %>"
+                                                        data-nombre="<%= c.nombre %>"
+                                                        data-ciudad="<%= c.ciudad %>"
+                                                        data-direccion="<%= c.direccion %>"
+                                                        data-telefono="<%= c.telefono_contacto %>">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
                                                     <button class="btn btn-sm btn-outline-danger"><i
                                                             class="bi bi-trash"></i></button>
                                                 </td>
@@ -134,6 +140,65 @@
             </div>
         </div>
 
+        <div class="modal fade" id="modalEditarConcesionario" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Editar Concesionario</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <form id="formEditarConcesionario">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="edit-nombre" class="form-label">Nuevo Nombre</label>
+                                <input type="text" class="form-control" id="edit-nombre" name="nombre" />
+                                <% if (errors && errors.nombre) { %>
+                                    <div class="text-danger mt-1">
+                                        <%= errors.nombre.msg %>
+                                    </div>
+                                    <% } %>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="edit-ciudad" class="form-label">Nueva Ciudad</label>
+                                <input type="text" class="form-control" id="edit-ciudad" name="ciudad" />
+                                <% if (errors && errors.ciudad) { %>
+                                    <div class="text-danger mt-1">
+                                        <%= errors.ciudad.msg %>
+                                    </div>
+                                    <% } %>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="edit-direccion" class="form-label">Nueva Dirección</label>
+                                <input type="text" class="form-control" id="edit-direccion" name="direccion" />
+                                <% if (errors && errors.direccion) { %>
+                                    <div class="text-danger mt-1">
+                                        <%= errors.direccion.msg %>
+                                    </div>
+                                    <% } %>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="edit-telefono" class="form-label">Nuevo Teléfono</label>
+                                <input type="tel" class="form-control" id="edit-telefono" name="telefonoContacto" />
+                                <% if (errors && errors.telefonoContacto) { %>
+                                    <div class="text-danger mt-1">
+                                        <%= errors.telefonoContacto.msg %>
+                                    </div>
+                                    <% } %>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-success">Guardar Concesionario</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script src="/js/bootstrap.bundle.min.js"></script>
 
         <% if (openModal) { %>
@@ -146,7 +211,45 @@
                     }
                 });
             </script>
-            <% } %>
+        <% } %>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var editModalEl = document.getElementById('modalEditarConcesionario');
+                if (!editModalEl) return;
+
+                editModalEl.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    if (!button) return;
+
+                    var id = button.getAttribute('data-id') || '';
+                    var nombre = button.getAttribute('data-nombre') || '';
+                    var ciudad = button.getAttribute('data-ciudad') || '';
+                    var direccion = button.getAttribute('data-direccion') || '';
+                    var telefono = button.getAttribute('data-telefono') || '';
+
+                    var inputId = document.getElementById('edit-id');
+                    var inputNombre = document.getElementById('edit-nombre');
+                    var inputCiudad = document.getElementById('edit-ciudad');
+                    var inputDireccion = document.getElementById('edit-direccion');
+                    var inputTelefono = document.getElementById('edit-telefono');
+
+                    if (inputId) inputId.value = id;
+                    if (inputNombre) inputNombre.value = nombre;
+                    if (inputCiudad) inputCiudad.value = ciudad;
+                    if (inputDireccion) inputDireccion.value = direccion;
+                    if (inputTelefono) inputTelefono.value = telefono;
+
+                    // Set form action to include id so server receives the id in the URL
+                    var editForm = document.getElementById('formEditarConcesionario');
+                    if (editForm) {
+                        // Use method-override query param so standard POST works if needed
+                        editForm.action = '/admin/dealerships/' + id;
+                        editForm.method = 'POST';
+                    }
+                });
+            });
+        </script>
 </body>
 
 </html>
