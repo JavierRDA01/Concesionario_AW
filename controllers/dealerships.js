@@ -25,3 +25,9 @@ exports.updateDealership = async (req, res) => {
 
   res.redirect("/admin/dealerships");
 }
+
+exports.deleteDealership = async (req, res) => {
+  const id = req.params.id;
+  await dealershipDataAccess.deleteDealership(id);
+    res.json({ success: true, redirect: '/admin/dealerships' });
+}

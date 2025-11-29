@@ -44,9 +44,20 @@ const updateDealership = async (dealership) => {
     }
 }
 
+const deleteDealership = async (id) => {
+    const sql = "DELETE FROM concesionarios WHERE id_concesionario = ?";
+    const values = [id];
+    try {
+        await pool.query(sql, values);
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     saveDealership,
     obtenerConcesionarios,
     findDealership,
-    updateDealership
+    updateDealership,
+    deleteDealership
 }

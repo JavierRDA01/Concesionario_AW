@@ -3,7 +3,7 @@ const adminRouter = express.Router();
 const adminQueries = require('../data/admin'); // Importamos el archivo que acabamos de crear
 const vehiclesQueries = require('../data/vehicles');
 const dealershipsQueries = require('../data/dealerships'); // Asumo que existe, si no, avísame
-const { createDealership, getAllDealerships, updateDealership } = require("../controllers/dealerships");
+const { createDealership, getAllDealerships, updateDealership, deleteDealership } = require("../controllers/dealerships");
 const { dealershipValidationRules, validate } = require("../middlewares/dealership.validation");
 
 // Middleware para proteger la ruta: Solo entra si es admin. Descomentar en producción
@@ -70,5 +70,6 @@ adminRouter.post('/vehicles/new', verificarAdmin, (req, res) => {
 adminRouter.post("/dealerships/new", verificarAdmin, dealershipValidationRules, validate, createDealership);
 adminRouter.get("/dealerships", verificarAdmin, getAllDealerships);
 adminRouter.post("/dealerships/:id", verificarAdmin, updateDealership);
+adminRouter.delete("/dealerships/:id", verificarAdmin, deleteDealership);
 
 module.exports = adminRouter;

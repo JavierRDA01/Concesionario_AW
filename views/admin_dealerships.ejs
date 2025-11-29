@@ -41,7 +41,7 @@
                                     </thead>
                                     <tbody>
                                         <% concesionarios.forEach(c=> { %>
-                                            <tr>
+                                            <tr data-id="<%= c.id_concesionario %>">
                                                 <td>
                                                     <%= c.nombre %>
                                                 </td>
@@ -62,8 +62,9 @@
                                                         data-telefono="<%= c.telefono_contacto %>">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
-                                                    <button class="btn btn-sm btn-outline-danger"><i
-                                                            class="bi bi-trash"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger btn-delete-dealership" data-id="<%= c.id_concesionario %>" data-nombre="<%= c.nombre %>" data-bs-toggle="modal" data-bs-target="#modalConfirmDelete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
                                                 </td>
                                             </tr>
                                             <% }) %>
@@ -199,6 +200,25 @@
             </div>
         </div>
 
+        <!-- Delete confirmation modal -->
+        <div class="modal fade" id="modalConfirmDelete" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Confirmar Eliminación</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Estás seguro de que quieres eliminar el concesionario <strong id="delete-dealership-name"></strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" id="confirm-delete-btn" class="btn btn-danger">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script src="/js/bootstrap.bundle.min.js"></script>
 
         <% if (openModal) { %>
@@ -244,9 +264,57 @@
                     var editForm = document.getElementById('formEditarConcesionario');
                     if (editForm) {
                         // Use method-override query param so standard POST works if needed
-                        editForm.action = '/admin/dealerships/' + id;
+                        editForm.action = '/admin/dealerships/' + encodeURIComponent(id);
                         editForm.method = 'POST';
                     }
+                });
+            });
+            
+            // Delete flow using confirmation modal
+            document.addEventListener('DOMContentLoaded', function () {
+                var confirmModalEl = document.getElementById('modalConfirmDelete');
+                var confirmBtn = document.getElementById('confirm-delete-btn');
+                var nameEl = document.getElementById('delete-dealership-name');
+                if (!confirmModalEl || !confirmBtn) return;
+
+                confirmModalEl.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget; // Button that triggered the modal
+                    if (!button) return;
+
+                    var id = button.getAttribute('data-id') || '';
+                    var nombre = button.getAttribute('data-nombre') || '';
+
+                    // display name in modal
+                    if (nameEl) nameEl.textContent = nombre;
+
+                    // attach id to confirm button
+                    confirmBtn.dataset.id = id;
+                });
+
+                confirmBtn.addEventListener('click', function () {
+                    var id = this.dataset.id;
+                    if (!id) return;
+                    this.disabled = true;
+
+                    fetch('/admin/dealerships/' + encodeURIComponent(id), {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(function (res) {
+                        if (res.ok) return res.json();
+                        throw new Error('Error en la petición');
+                    })
+                    .then(function (data) {
+                        if (data && data.success) {
+                            if (data.redirect) {
+                                // navigate to redirect url suggested by server
+                                window.location.href = data.redirect;
+                                return;
+                            }
+                        }
+                    })
                 });
             });
         </script>
