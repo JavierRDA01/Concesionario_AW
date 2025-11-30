@@ -11,14 +11,10 @@
     <div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5">
         <legend class="text-center mb-4">Iniciar sesión en <b class = "rojo"> WibbleUCM</b></legend>
         
-        <% if(error){ %>
-            <div class = "alert alert-danger" role = "alert">
-                <%= error %>
-            </div>
-        <% } %>
+        <div id="login-feedback" class="mb-3" role="alert" style="display:none;"></div>
 
-        <form class = "row" action = "/login" method = "POST">
-                <div class="mb-3">
+        <form id="login-form" class = "row" action = "/login" method = "POST">
+            <div class="mb-3">
                 <label for = "login_correo" class = "form-label">Correo</label>
                 <input class = "form-control" id = "login_correo" name = "correo" type = "text" required>
             </div>
@@ -32,6 +28,60 @@
         </form>
     </div>
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function(){
+            const form = document.getElementById('login-form');
+            const feedback = document.getElementById('login-feedback');
+
+            function showFeedback(message, type = 'danger'){
+                feedback.style.display = '';
+                feedback.className = 'alert alert-' + type;
+                feedback.textContent = message;
+            }
+
+            form.addEventListener('submit', async function(e){
+                e.preventDefault();
+                feedback.style.display = 'none';
+
+                const formData = new FormData(form);
+                const body = new URLSearchParams();
+                for (const pair of formData) body.append(pair[0], pair[1]);
+
+                try {
+                    const resp = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                        },
+                        body: body.toString(),
+                        credentials: 'same-origin'
+                    });
+
+                    const data = await resp.json().catch(() => null);
+
+                    if (!resp.ok) {
+                        const message = (data && data.message) ? data.message : 'Error en el inicio de sesión.';
+                        showFeedback(message, 'danger');
+                        return;
+                    }
+
+                    if (data && data.success) {
+                        // Redirect on success
+                        window.location.href = data.redirect || '/';
+                        return;
+                    }
+
+                    showFeedback((data && data.message) ? data.message : 'Error en el inicio de sesión.');
+
+                } catch (err) {
+                    console.error('Login error', err);
+                    showFeedback('No se pudo conectar con el servidor. Inténtalo de nuevo.');
+                }
+            });
+        })();
+    </script>
 
 </body>
 </html>
