@@ -172,13 +172,14 @@ authRouter.post('/login', (req, res)=>{
                     // 5. Creamos la sesión del usuario
                     // Guardamos solo datos no sensibles
                     req.session.user = {
-                        id: usuario.id_usuario,
+                        id_usuario: usuario.id_usuario,
                         nombre: usuario.nombre,
                         correo: usuario.correo,
                         rol: usuario.rol,
                         id_concesionario: usuario.id_concesionario
                     };
 
+                    console.log("Usuario logueado:", req.session.user);
                     // 6. Redirigimos según el rol (Asegúrate que los roles en la BBDD son 'admin' y 'empleado' como en el SQL)
                     if (usuario.rol === 'admin') { 
                         // Redirige al dashboard de admin (deberás crear esta ruta)

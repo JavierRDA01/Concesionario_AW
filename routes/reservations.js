@@ -31,8 +31,15 @@ router.get('/new', (req, res) => {
 router.post('/new', (req, res) => {
     const oldInput = req.body;
 
+    const userId = req.session.user ? req.session.user.id_usuario : null;
+
+    // Si no hay usuario logueado, podrías redirigir al login o mostrar error
+    if (!userId) {
+        return res.redirect('/login'); // O manejar el error apropiadamente
+    }
+
     const data = {
-        id_usuario: req.user ? req.user.id_usuario : null, 
+        id_usuario: userId, 
         id_vehiculo: req.body.id_vehiculo,
         fecha_inicio: req.body.fecha_inicio,
         fecha_fin: req.body.fecha_fin,

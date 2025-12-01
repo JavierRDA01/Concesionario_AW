@@ -20,7 +20,7 @@ const registrarUsuario = (data, callback) => {
 };
 
 const obtenerUsuarioPorCorreo = (correo, callback) =>{
-    const sql = "SELECT nombre, correo, contraseña, rol, telefono, id_concesionario, preferencias_accesibilidad FROM usuarios WHERE correo = ?";
+    const sql = "SELECT id_usuario, nombre, correo, contraseña, rol, telefono, id_concesionario, preferencias_accesibilidad FROM usuarios WHERE correo = ?";
     
     pool.query(sql, correo, (err, result)=>{
         if(err){
