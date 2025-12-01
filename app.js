@@ -60,12 +60,14 @@ app.get('/', (req ,res)=>{
 
 // Routes
 // const mainRoutes = require('./routes/index');
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/auth.routes');
 // const usersRoutes = require('./routes/users');
 // const vehiclesRoutes = require('./routes/vehicles');
 const adminRoutes = require('./routes/admin')
 
 const reservationsRoutes = require('./routes/reservations');
+const dealershipRoutes = require('./routes/dealership.routes');
+const userRoutes = require('./routes/user.routes');
 
 /* ... más abajo, después de app.use('/', authRoutes); */
 
@@ -75,7 +77,8 @@ const reservationsRoutes = require('./routes/reservations');
 app.use('/', authRoutes);
 app.use('/reservations', reservationsRoutes);
 app.use('/admin', adminRoutes);
-
+app.use('/api/dealerships', dealershipRoutes);
+app.use('/api/users', userRoutes);
 
 // app.use('/', usersRoutes);
 // para mensaje app.use('/', vehiclesRoutes);

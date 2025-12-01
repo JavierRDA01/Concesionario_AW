@@ -3,18 +3,7 @@ const adminRouter = express.Router();
 const adminQueries = require('../data/admin'); // Importamos el archivo que acabamos de crear
 const vehiclesQueries = require('../data/vehicles');
 const dealershipsQueries = require('../data/dealerships'); // Asumo que existe, si no, avísame
-const { createDealership, getAllDealerships, updateDealership, deleteDealership } = require("../controllers/dealerships");
-const { dealershipValidationRules, validate } = require("../middlewares/dealership.validation");
-
-// Middleware para proteger la ruta: Solo entra si es admin. Descomentar en producción
-const verificarAdmin = (req, res, next) => {
-    // Si el usuario existe en sesión y su rol es 'admin'
-    // if (req.session.user && req.session.user.rol === 'admin') {
-        return next();
-    // }
-    // Si no, lo mandamos al login o a inicio
-    // return res.redirect('/login'); 
-};
+const verificarAdmin = require('../middlewares/securityFilter');
 
 // GET http://localhost:3000/admin/dashboard
 adminRouter.get('/dashboard', verificarAdmin, async (req, res) => {
@@ -66,10 +55,5 @@ adminRouter.post('/vehicles/new', verificarAdmin, (req, res) => {
         res.redirect('/admin/vehicles?success=1');
     });
 });
-
-adminRouter.post("/dealerships/new", verificarAdmin, dealershipValidationRules, validate, createDealership);
-adminRouter.get("/dealerships", verificarAdmin, getAllDealerships);
-adminRouter.post("/dealerships/:id", verificarAdmin, updateDealership);
-adminRouter.delete("/dealerships/:id", verificarAdmin, deleteDealership);
 
 module.exports = adminRouter;

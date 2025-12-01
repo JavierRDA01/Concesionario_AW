@@ -7,7 +7,7 @@ exports.createDealership = async (req, res) => {
 
 exports.getAllDealerships = async (req, res) => {
   const concesionarios = await dealershipDataAccess.obtenerConcesionarios();
-  res.render("admin_dealerships", { errors: {}, user: req.session.user, openModal: false, concesionarios: concesionarios });
+  res.json(concesionarios);
 }
 
 exports.updateDealership = async (req, res) => {

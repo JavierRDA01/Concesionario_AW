@@ -1,61 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel = "stylesheet" href = "/css/style.css">
-    <link rel = "stylesheet" href = "/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
     <title>Login de Usuario - WibbleUCM</title>
 </head>
-<body class = "d-flex justify-content-center">
+
+<body class="d-flex justify-content-center">
     <div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5">
-        <legend class="text-center mb-4">Iniciar sesión en <b class = "rojo"> WibbleUCM</b></legend>
-        
+        <legend class="text-center mb-4">Iniciar sesión en <b class="rojo"> WibbleUCM</b></legend>
+
         <div id="login-feedback" class="mb-3" role="alert" style="display:none;"></div>
 
-        <form id="login-form" class = "row" action = "/login" method = "POST">
+        <form id="login-form" class="row">
             <div class="mb-3">
-                <label for = "login_correo" class = "form-label">Correo</label>
-                <input class = "form-control" id = "login_correo" name = "correo" type = "text" required>
+                <label for="login_correo" class="form-label">Correo</label>
+                <input class="form-control" id="login_correo" name="correo" type="text" required>
             </div>
             <div class="mb-3">
-                <label for = "login_password" class = "form-label">Contraseña</label>
-                <input type = "password" id = "login_password" class = "form-control" name = "password" required>
+                <label for="login_password" class="form-label">Contraseña</label>
+                <input type="password" id="login_password" class="form-control" name="password" required>
             </div>
             <div class="d-flex justify-content-center">
-                <button type = "submit" class = "btn btn-danger w-50">Iniciar Sesión</button>
+                <button type="submit" class="btn btn-danger w-50">Iniciar Sesión</button>
             </div>
         </form>
     </div>
     <script src="js/bootstrap.bundle.min.js"></script>
     <script>
-        (function(){
+        (function () {
             const form = document.getElementById('login-form');
             const feedback = document.getElementById('login-feedback');
 
-            function showFeedback(message, type = 'danger'){
+            function showFeedback(message, type = 'danger') {
                 feedback.style.display = '';
                 feedback.className = 'alert alert-' + type;
                 feedback.textContent = message;
             }
 
-            form.addEventListener('submit', async function(e){
+            form.addEventListener('submit', async function (e) {
                 e.preventDefault();
                 feedback.style.display = 'none';
 
-                const formData = new FormData(form);
-                const body = new URLSearchParams();
-                for (const pair of formData) body.append(pair[0], pair[1]);
+                const formData = {
+                    correo: form.correo.value,
+                    password: form.password.value
+                };
 
                 try {
                     const resp = await fetch(form.action, {
                         method: 'POST',
                         headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                            'Content-Type': 'application/json'
                         },
-                        body: body.toString(),
+                        body: JSON.stringify(formData),
                         credentials: 'same-origin'
                     });
 
@@ -67,10 +68,11 @@
                         return;
                     }
 
-                    if (data && data.success) {
-                        // Redirect on success
-                        window.location.href = data.redirect || '/';
-                        return;
+                    // Redirect on success
+                    if (data.rol === 'admin') {
+                        window.location.href = '/admin/dashboard';
+                    } else {
+                        window.location.href = '/users/dashboard';
                     }
 
                     showFeedback((data && data.message) ? data.message : 'Error en el inicio de sesión.');
@@ -84,4 +86,5 @@
     </script>
 
 </body>
+
 </html>
