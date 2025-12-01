@@ -29,6 +29,11 @@
                         </a>
                     </li>
                     <li class="nav-item mb-2">
+                        <a href="/admin/dealerships" class="nav-link text-dark">
+                            <i class="bi bi-building"></i> Concesionarios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
                         <a href="/admin/users" class="nav-link text-dark">
                             <i class="bi bi-people"></i> Usuarios
                         </a>
@@ -105,7 +110,75 @@
             </main>
         </div>
     </div>
+    <div class="modal fade" id="modalNuevoVehiculo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-car-front-fill"></i> Alta de Vehículo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/admin/vehicles/new" method="POST">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Matrícula <span class="text-danger">*</span></label>
+                                <input type="text" name="matricula" class="form-control" placeholder="1234-ABC" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Marca <span class="text-danger">*</span></label>
+                                <input type="text" name="marca" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Modelo <span class="text-danger">*</span></label>
+                                <input type="text" name="modelo" class="form-control" required>
+                            </div>
 
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Año</label>
+                                <input type="number" name="anio" class="form-control" value="2023" min="2000" max="2030" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Plazas</label>
+                                <input type="number" name="plazas" class="form-control" value="5" min="2" max="9" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Autonomía (km)</label>
+                                <input type="number" name="autonomia" class="form-control" placeholder="400" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Color</label>
+                                <input type="text" name="color" class="form-control" placeholder="Blanco">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Concesionario Asignado <span class="text-danger">*</span></label>
+                                <select name="id_concesionario" class="form-select" required>
+                                    <option value="" selected disabled>Selecciona una ubicación...</option>
+                                    <% if (concesionarios && concesionarios.length > 0) { %>
+                                        <% concesionarios.forEach(c => { %>
+                                            <option value="<%= c.id_concesionario %>"><%= c.nombre %> (<%= c.ciudad %>)</option>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <option value="" disabled>No hay concesionarios disponibles</option>
+                                    <% } %>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Nombre de imagen</label>
+                                <input type="text" name="imagen" class="form-control" placeholder="ej: tesla_model3.jpg">
+                                <div class="form-text">Deja vacío para usar la imagen por defecto.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Guardar Vehículo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <script src="/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

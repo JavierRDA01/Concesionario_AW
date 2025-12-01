@@ -94,4 +94,34 @@ adminRouter.get('/users', verificarAdmin, (req, res) => {
         });
     });
 });
+
+// GET: Listar concesionarios
+adminRouter.get('/dealerships', verificarAdmin, (req, res) => {
+    dealershipsQueries.obtenerConcesionarios((err, concesionarios) => {
+        if (err) return res.status(500).send("Error al cargar concesionarios");
+        
+        res.render('admin_dealerships', {
+            concesionarios: concesionarios,
+            user: req.session.user,
+            error: req.query.error // Para mostrar alerta si falla al crear
+        });
+    });
+});
+
+// POST: Crear nuevo concesionario
+adminRouter.post('/dealerships/new', verificarAdmin, (req, res) => {
+    const { nombre, ciudad, direccion, telefono } = req.body;
+    
+    // Validación básica
+    if (!nombre || !ciudad || !direccion) {
+        return res.redirect('/admin/dealerships?error=Faltan datos obligatorios');
+    }
+
+    dealershipsQueries.crearConcesionario({ nombre, ciudad, direccion, telefono }, (err) => {
+        if (err) {
+            return res.redirect('/admin/dealerships?error=Error al crear el concesionario');
+        }
+        res.redirect('/admin/dealerships');
+    });
+});
 module.exports = adminRouter;

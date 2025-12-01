@@ -1,22 +1,30 @@
 const pool = require('./connection');
-const mysql = require('mysql');
 
-const obtenerConcesionarios = (callback)=>{
-    //Query para obtener todos los concesionarios de la bbdd
-    const sql = "SELECT id_concesionario, nombre, ciudad, direccion, telefono_contacto FROM concesionarios";
-
-    pool.query(sql, (err, result)=>{
-        if(err){
+const obtenerConcesionarios = (callback) => {
+    const sql = "SELECT id_concesionario, nombre, ciudad, direccion, telefono_contacto FROM Concesionarios ORDER BY id_concesionario ASC";
+    pool.query(sql, (err, result) => {
+        if (err) {
             console.error("Error al obtener los concesionarios: ", err.message);
             return callback(err);
         }
-        // Al callback le decimos que no hay error y devolvemos el resultado
-        callback(null, result)
-    })
-}
+        callback(null, result);
+    });
+};
 
-
+const crearConcesionario = (data, callback) => {
+    const sql = "INSERT INTO Concesionarios (nombre, ciudad, direccion, telefono_contacto) VALUES (?, ?, ?, ?)";
+    const values = [data.nombre, data.ciudad, data.direccion, data.telefono];
+    
+    pool.query(sql, values, (err, result) => {
+        if (err) {
+            console.error("Error al crear concesionario: ", err.message);
+            return callback(err);
+        }
+        callback(null, result);
+    });
+};
 
 module.exports = {
-    obtenerConcesionarios
-}
+    obtenerConcesionarios,
+    crearConcesionario 
+};
