@@ -14,7 +14,34 @@
 
     <div class="container-fluid my-4">
         <div class="row">
-            <div class="col-12 px-md-4">
+            <div class="col-md-2 d-none d-md-block bg-white sidebar p-3 shadow-sm rounded me-3" style="min-height: 80vh;">
+                <h5 class="text-muted">Menú Admin</h5>
+                <hr>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a href="/admin/dashboard" class="nav-link text-dark">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/admin/vehicles" class="nav-link active text-danger fw-bold bg-light rounded">
+                            <i class="bi bi-car-front"></i> Gestión de Flota
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/admin/users" class="nav-link text-dark">
+                            <i class="bi bi-people"></i> Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/admin/reservations" class="nav-link text-dark">
+                            <i class="bi bi-calendar-check"></i> Reservas
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="text-dark">Gestión de Flota</h2>
@@ -23,7 +50,9 @@
                     </button>
                 </div>
 
-                <% if (typeof error_msg !== 'undefined' && error_msg) { %> <% } %>
+                <% if (typeof error_msg !== 'undefined' && error_msg) { %> 
+                    <div class="alert alert-danger"><%= error_msg %></div>
+                <% } %>
 
                 <div class="card shadow-sm">
                     <div class="card-body p-0">
@@ -73,74 +102,7 @@
                         </div>
                     </div>
                 </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalNuevoVehiculo" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Dar de Alta Nuevo Vehículo</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="/admin/vehicles/new" method="POST">
-                    <div class="modal-body">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Matrícula</label>
-                                <input type="text" name="matricula" class="form-control" required placeholder="1234-ABC">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Marca</label>
-                                <input type="text" name="marca" class="form-control" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Modelo</label>
-                                <input type="text" name="modelo" class="form-control" required>
-                            </div>
-
-                            <div class="col-md-3">
-                                <label class="form-label">Año</label>
-                                <input type="number" name="anio" class="form-control" required min="2000" max="2026">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Plazas</label>
-                                <input type="number" name="plazas" class="form-control" required min="2" max="9">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Autonomía (km)</label>
-                                <input type="number" name="autonomia" class="form-control" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Color</label>
-                                <input type="text" name="color" class="form-control">
-                            </div>
-
-                            <div class="col-md-12">
-                                <label class="form-label">Concesionario Asignado</label>
-                                <select name="id_concesionario" class="form-select" required>
-                                    <option value="" selected disabled>Selecciona una ubicación...</option>
-                                    <% concesionarios.forEach(c => { %>
-                                        <option value="<%= c.id_concesionario %>"><%= c.nombre %> - <%= c.ciudad %></option>
-                                    <% }) %>
-                                </select>
-                            </div>
-                            
-                            <div class="col-md-12">
-                                <label class="form-label">Nombre de archivo de imagen</label>
-                                <input type="text" name="imagen" class="form-control" placeholder="ejemplo: tesla.jpg">
-                                <div class="form-text">Dejar vacío para usar imagen por defecto.</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-success">Guardar Vehículo</button>
-                    </div>
-                </form>
-            </div>
+            </main>
         </div>
     </div>
 

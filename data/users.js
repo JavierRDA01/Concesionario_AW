@@ -30,9 +30,25 @@ const obtenerUsuarioPorCorreo = (correo, callback) =>{
         return callback(null,result);
     });
 }
-
+const obtenerTodosLosUsuarios = (callback) => {
+    const sql = `
+        SELECT u.id_usuario, u.nombre, u.correo, u.rol, u.telefono, c.nombre as nombre_concesionario
+        FROM Usuarios u
+        LEFT JOIN Concesionarios c ON u.id_concesionario = c.id_concesionario
+        ORDER BY u.id_usuario ASC
+    `;
+    
+    pool.query(sql, (err, results) => {
+        if (err) {
+            console.error("Error al obtener usuarios: ", err.message);
+            return callback(err);
+        }
+        callback(null, results);
+    });
+};
 
 module.exports = {
     registrarUsuario,
-    obtenerUsuarioPorCorreo
-}
+    obtenerUsuarioPorCorreo,
+    obtenerTodosLosUsuarios 
+};

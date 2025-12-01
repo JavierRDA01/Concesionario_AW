@@ -1,8 +1,10 @@
 const express = require('express');
 const adminRouter = express.Router();
-const adminQueries = require('../data/admin'); // Importamos el archivo que acabamos de crear
+const adminQueries = require('../data/admin'); 
 const vehiclesQueries = require('../data/vehicles');
-const dealershipsQueries = require('../data/dealerships'); // Asumo que existe, si no, avísame
+const dealershipsQueries = require('../data/dealerships');
+const reservationsQueries = require('../data/reservations');
+const userQueries = require('../data/users');
 
 // Middleware para proteger la ruta: Solo entra si es admin
 const verificarAdmin = (req, res, next) => {
@@ -67,4 +69,29 @@ adminRouter.post('/vehicles/new', verificarAdmin, (req, res) => {
     });
 });
 
+adminRouter.get('/reservations', verificarAdmin, (req, res) => {
+    reservationsQueries.obtenerTodasLasReservasDetalladas((err, reservas) => {
+        if (err) {
+            console.error("Error listando reservas:", err);
+            return res.status(500).send("Error del servidor al cargar reservas");
+        }
+
+        res.render('admin_reservations', {
+            reservas: reservas,
+            user: req.session.user
+        });
+    });
+});
+
+adminRouter.get('/users', verificarAdmin, (req, res) => {
+    userQueries.obtenerTodosLosUsuarios((err, users) => {
+        if (err) {
+            return res.status(500).send("Error al cargar usuarios");
+        }
+        res.render('admin_users', {
+            users: users,
+            user: req.session.user
+        });
+    });
+});
 module.exports = adminRouter;
