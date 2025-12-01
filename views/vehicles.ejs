@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>Vehículos Disponibles - WibbleUCM</title>
+    <style>
+        .car-card img { height: 180px; object-fit: cover; }
+        .car-card:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+        .car-card { transition: transform 0.2s; }
+    </style>
+</head>
+<body class="bg-light">
+    
+    <%- include('./barraNavegadora.ejs') %>
+
+    <div class="container-fluid my-4">
+        <div class="row">
+            
+            <div class="col-md-2 d-none d-md-block bg-white sidebar p-3 shadow-sm rounded me-3" style="min-height: 80vh;">
+                <h5 class="text-muted">Mi Espacio</h5>
+                <hr>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2"><a href="/users/dashboard" class="nav-link text-dark"><i class="bi bi-speedometer2"></i> Mi Dashboard</a></li>
+                    <li class="nav-item mb-2">
+                        <a href="/vehicles" class="nav-link active text-danger fw-bold bg-light rounded"><i class="bi bi-ev-front"></i> Vehículos Disponibles</a>
+                    </li>
+                    <li class="nav-item mb-2"><a href="/reservations/new" class="nav-link text-dark"><i class="bi bi-plus-circle"></i> Nueva Reserva</a></li>
+                    <li class="nav-item mb-2"><a href="/my-reservations" class="nav-link text-dark"><i class="bi bi-journal-text"></i> Historial</a></li>
+                </ul>
+            </div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="text-dark">
+                        <i class="bi bi-car-front-fill text-danger"></i> Vehículos Disponibles 
+                        <small class="text-muted fs-5 ms-2">(<%= filtro %>)</small>
+                    </h2>
+                </div>
+
+                <% if (vehiculos.length === 0) { %>
+                    <div class="alert alert-warning text-center py-5">
+                        <h4><i class="bi bi-emoji-frown"></i> Vaya, no hay vehículos disponibles en tu base.</h4>
+                    </div>
+                <% } else { %>
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                        <% vehiculos.forEach(v => { %>
+                            <div class="col">
+                                <div class="card h-100 shadow-sm border-0 car-card">
+                                    <% if(v.imagen && v.imagen !== 'default_car.jpg') { %>
+                                        <img src="/images/<%= v.imagen %>" class="card-img-top" alt="<%= v.modelo %>" onerror="this.src='https://placehold.co/600x400?text=Sin+Imagen'">
+                                    <% } else { %>
+                                        <div class="bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 180px;"><i class="bi bi-car-front display-1"></i></div>
+                                    <% } %>
+
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="card-title fw-bold mb-0"><%= v.marca %> <%= v.modelo %></h5>
+                                            <span class="badge bg-success">Disponible</span>
+                                        </div>
+                                        <p class="text-muted small mb-3"><i class="bi bi-credit-card-2-front"></i> <%= v.matricula %></p>
+                                        <div class="row g-2 small mb-3">
+                                            <div class="col-6"><i class="bi bi-lightning-charge-fill text-warning"></i> Autonomía: <strong><%= v.autonomia_km %> km</strong></div>
+                                            <div class="col-6"><i class="bi bi-people-fill text-danger"></i> Plazas: <strong><%= v.numero_plazas %></strong></div>
+                                            <div class="col-6"><i class="bi bi-calendar3"></i> Año: <%= v.año_matriculacion %></div>
+                                            <div class="col-6"><i class="bi bi-palette"></i> Color: <%= v.color || 'N/A' %></div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-white border-top-0 pt-0 pb-3">
+                                        <a href="/reservations/new?vehiculo_id=<%= v.id_vehiculo %>" class="btn btn-outline-danger w-100 fw-bold">Reservar este coche</a>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </main>
+        </div>
+    </div>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

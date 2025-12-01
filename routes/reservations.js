@@ -7,6 +7,7 @@ const dealershipsQueries = require('../data/dealerships');
 const reservationsQueries = require('../data/reservations');
 
 router.get('/new', (req, res) => {
+    const selectedVehicleId = req.query.vehiculo_id; 
     vehiclesQueries.obtenerVehiculosDisponibles((errV, vehiculos) => {
         if (errV) {
             console.error(errV);
@@ -21,7 +22,7 @@ router.get('/new', (req, res) => {
                 vehiculos,
                 concesionarios,
                 errors: null,
-                oldInput: {},
+                oldInput: { id_vehiculo: selectedVehicleId }, // Pasamos el ID como 'oldInput'
                 success_msg: null
              });
         });

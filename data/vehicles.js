@@ -65,11 +65,27 @@ const obtenerTodosLosVehiculos = (callback) => {
 
         pool.query(sql, [], callback);
     }
-
+const obtenerVehiculosDisponiblesPorConcesionario = (id_concesionario, callback) => {
+    const sql = `
+        SELECT id_vehiculo, matricula, marca, modelo, año_matriculacion, 
+               numero_plazas, autonomia_km, color, imagen, estado 
+        FROM Vehiculos 
+        WHERE id_concesionario = ? AND estado = 'disponible'
+    `;
+    
+    pool.query(sql, [id_concesionario], (err, results) => {
+        if (err) {
+            console.error("Error obteniendo vehículos por concesionario:", err);
+            return callback(err);
+        }
+        callback(null, results);
+    });
+};
 module.exports = {
     obtenerVehiculosDisponibles,
     obtenerVehiculoPorId,
     crearVehiculo,
-    obtenerTodosLosVehiculos
+    obtenerTodosLosVehiculos,
+    obtenerVehiculosDisponiblesPorConcesionario
 
 };

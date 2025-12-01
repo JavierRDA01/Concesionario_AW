@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>Mi Dashboard - WibbleUCM</title>
+</head>
+<body class="bg-light">
+    
+    <%- include('./barraNavegadora.ejs') %>
+
+    <div class="container-fluid my-4">
+        <div class="row">
+            <div class="col-md-2 d-none d-md-block bg-white sidebar p-3 shadow-sm rounded me-3" style="min-height: 80vh;">
+                <h5 class="text-muted">Mi Espacio</h5>
+                <hr>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a href="/users/dashboard" class="nav-link active text-danger fw-bold bg-light rounded">
+                            <i class="bi bi-speedometer2"></i> Mi Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/vehicles" class="nav-link text-dark">
+                            <i class="bi bi-ev-front"></i> Vehículos Disponibles
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/reservations/new" class="nav-link text-dark">
+                            <i class="bi bi-plus-circle"></i> Nueva Reserva
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/my-reservations" class="nav-link text-dark">
+                            <i class="bi bi-journal-text"></i> Historial
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
+                <div class="card border-0 shadow-sm bg-white mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="display-6">¡Hola, <span class="text-danger fw-bold"><%= user.nombre %></span>!</h2>
+                        <p class="lead text-muted mb-0">Bienvenido a tu panel de movilidad sostenible.</p>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-start border-danger border-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-danger"><i class="bi bi-geo-alt-fill"></i> Mi Base Asignada</h5>
+                                <p class="card-text mt-3">
+                                    <% if(miConcesionario) { %>
+                                        <strong><%= miConcesionario.nombre %></strong><br>
+                                        <span class="text-muted"><%= miConcesionario.direccion %>, <%= miConcesionario.ciudad %></span>
+                                    <% } else { %>
+                                        <span class="text-muted">No tienes concesionario asignado.</span>
+                                    <% } %>
+                                </p>
+                                <a href="/vehicles" class="btn btn-outline-danger btn-sm mt-2">Ver vehículos de mi base</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-start border-danger border-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-danger"><i class="bi bi-activity"></i> Estado Actual</h5>
+                                <div class="mt-3">
+                                    <% if(reservasActivas.length > 0) { %>
+                                        <div class="alert alert-danger mb-0">
+                                            <strong>¡Tienes una reserva activa!</strong><br>
+                                            <%= reservasActivas[0].vehiculo %> <br>
+                                            <small>Hasta: <%= new Date(reservasActivas[0].fecha_fin).toLocaleDateString() %></small>
+                                        </div>
+                                    <% } else { %>
+                                        <p class="text-muted">No tienes vehículos en uso actualmente.</p>
+                                        <a href="/reservations/new" class="btn btn-danger w-100">Reservar ahora</a>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-start border-secondary border-4">
+                            <div class="card-body">
+                                <h5 class="card-title text-dark"><i class="bi bi-clock-history"></i> Actividad Reciente</h5>
+                                <ul class="list-group list-group-flush mt-3 small">
+                                    <% if(ultimasReservas.length > 0) { %>
+                                        <% ultimasReservas.forEach(r => { %>
+                                            <li class="list-group-item px-0">
+                                                <div class="d-flex justify-content-between">
+                                                    <span><%= r.vehiculo %></span>
+                                                    <span class="text-muted"><%= new Date(r.fecha_inicio).toLocaleDateString() %></span>
+                                                </div>
+                                                <span class="badge bg-secondary"><%= r.estado %></span>
+                                            </li>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <li class="list-group-item px-0 text-muted">Aún no has realizado reservas.</li>
+                                    <% } %>
+                                </ul>
+                                <div class="mt-3 text-center">
+                                    <a href="/my-reservations" class="text-decoration-none fw-bold text-danger">Ver todo el historial</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

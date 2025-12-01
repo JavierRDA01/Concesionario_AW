@@ -5,84 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <title>Reservar Vehículo - WibbleUCM</title>
 </head>
 <body class="bg-light">
     <%- include('./barraNavegadora.ejs') %>
 
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8 col-lg-5">
-                
-                <div class="card shadow-sm">
-                    <div class="card-body p-4">
-                        <h4 class="card-title mb-4 text-center">Reservar vehículo</h4>
-                        
-                        <% if (locals.success_msg) { %>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <%= success_msg %>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    <div class="container-fluid my-4">
+        <div class="row">
+            <div class="col-md-2 d-none d-md-block bg-white sidebar p-3 shadow-sm rounded me-3" style="min-height: 80vh;">
+                <h5 class="text-muted">Mi Espacio</h5>
+                <hr>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2"><a href="/users/dashboard" class="nav-link text-dark"><i class="bi bi-speedometer2"></i> Mi Dashboard</a></li>
+                    <li class="nav-item mb-2"><a href="/vehicles" class="nav-link text-dark"><i class="bi bi-ev-front"></i> Vehículos Disponibles</a></li>
+                    <li class="nav-item mb-2">
+                        <a href="/reservations/new" class="nav-link active text-danger fw-bold bg-light rounded"><i class="bi bi-plus-circle"></i> Nueva Reserva</a>
+                    </li>
+                    <li class="nav-item mb-2"><a href="/my-reservations" class="nav-link text-dark"><i class="bi bi-journal-text"></i> Historial</a></li>
+                </ul>
+            </div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-xl-8">
+                        <div class="card shadow-sm">
+                            <div class="card-body p-4">
+                                <h4 class="card-title mb-4 text-center text-danger">Crear Nueva Reserva</h4>
+                                
+                                <% if (locals.success_msg) { %>
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <%= success_msg %>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                                </div>
+                                <% } %>
+
+                                <% if(locals.errors && errors.length){ %>
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0">
+                                        <% errors.forEach(e => { %>
+                                            <li><%= e.msg %></li>
+                                        <% }) %>
+                                    </ul>
+                                </div>
+                                <% } %>
+
+                                <form action="/reservations/new" method="POST" class="row g-3" id="formReserva">
+                                    <div class="col-12">
+                                        <label for="vehiculo" class="form-label">Vehículo</label>
+                                        <select id="vehiculo" name="id_vehiculo" class="form-select" required>
+                                            <option value="" disabled selected>Selecciona un vehículo</option>
+                                            <% vehiculos.forEach(v => { %>
+                                                <option value="<%= v.id_vehiculo %>" 
+                                                    <%= (oldInput && oldInput.id_vehiculo == v.id_vehiculo) ? 'selected' : '' %>>
+                                                    <%= v.marca %> <%= v.modelo %> - <%= v.matricula %>
+                                                </option>
+                                            <% }) %>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="fecha_inicio" class="form-label">Fecha inicio</label>
+                                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" 
+                                            value="<%= oldInput ? oldInput.fecha_inicio : '' %>" required
+                                            onchange="document.getElementById('fecha_fin').min = this.value">
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="fecha_fin" class="form-label">Fecha fin</label>
+                                        <input type="date" id="fecha_fin" name="fecha_fin" class="form-control"  
+                                            value="<%= oldInput ? oldInput.fecha_fin : '' %>" required>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="kilometros_recorridos" class="form-label">Kilómetros iniciales (opcional)</label>
+                                        <input type="number" id="kilometros_recorridos" name="kilometros_recorridos" class="form-control" 
+                                            value="<%= oldInput ? oldInput.kilometros_recorridos : '' %>" min="0" step="1">
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label for="incidencias_reportadas" class="form-label">Notas / Incidencias previas</label>
+                                        <textarea id="incidencias_reportadas" name="incidencias_reportadas" rows="3" class="form-control"><%= oldInput ? oldInput.incidencias_reportadas : '' %></textarea>
+                                    </div>
+
+                                    <div class="col-12 text-center mt-4">
+                                        <button class="btn btn-danger w-100" type="button" onclick="abrirModalConfirmacion()">
+                                            Revisar y Confirmar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                        <% } %>
-
-                        <% if(locals.errors && errors.length){ %>
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                <% errors.forEach(e => { %>
-                                    <li><%= e.msg %></li>
-                                <% }) %>
-                            </ul>
-                        </div>
-                        <% } %>
-
-                        <form action="/reservations/new" method="POST" class="row g-3" id="formReserva">
-
-                            <div class="col-12">
-                                <label for="vehiculo" class="form-label">Vehículo</label>
-                                <select id="vehiculo" name="id_vehiculo" class="form-select" required>
-                                    <option value="" disabled selected>Selecciona un vehículo</option>
-                                    <% vehiculos.forEach(v => { %>
-                                        <option value="<%= v.id_vehiculo %>"><%= v.marca %> <%= v.modelo %> - <%= v.matricula %></option>
-                                    <% }) %>
-                                </select>
-                            </div>
-
-                            <div class="col-12">
-                                <label for="fecha_inicio" class="form-label">Fecha inicio</label>
-                                <input 
-                                    type="date" 
-                                    id="fecha_inicio" 
-                                    name="fecha_inicio" 
-                                    class="form-control" 
-                                    value="<%= oldInput ? oldInput.fecha_inicio : '' %>" 
-                                    required
-                                    onchange="document.getElementById('fecha_fin').min = this.value">
-                            </div>
-                            
-                            <div class="col-12">
-                                <label for="fecha_fin" class="form-label">Fecha fin</label>
-                                <input type="date" id="fecha_fin" name="fecha_fin" class="form-control"  value="<%= oldInput ? oldInput.fecha_fin : '' %>" required>
-                            </div>
-
-                            <div class="col-12">
-                                <label for="kilometros_recorridos" class="form-label">Kilómetros recorridos</label>
-                                <input type="number" id="kilometros_recorridos" name="kilometros_recorridos" class="form-control" value="<%= oldInput ? oldInput.kilometros_recorridos : '' %>" min="0" step="1">
-                            </div>
-                            
-                            <div class="col-12">
-                                <label for="incidencias_reportadas" class="form-label">Incidencias reportadas</label>
-                                <textarea id="incidencias_reportadas" name="incidencias_reportadas" rows="3" class="form-control"><%= oldInput ? oldInput.incidencias_reportadas : '' %></textarea>
-                            </div>
-
-                            <div class="col-12 text-center mt-4">
-                                <button class="btn btn-danger w-100" type="button" onclick="abrirModalConfirmacion()">
-                                    Revisar y Confirmar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                    </div> 
                 </div>
-            </div> 
+            </main>
         </div>
     </div>
 
@@ -106,63 +122,54 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-success" onclick="enviarFormularioReal()">Confirmar Reserva</button>
+                    <button type="button" class="btn btn-danger" onclick="enviarFormularioReal()">Confirmar Reserva</button>
                 </div>
             </div>
         </div>
     </div>
 
    <script src="/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Configurar fecha mínima
+   <script>
+    // Scripts originales intactos
     const fechaInicioInput = document.getElementById('fecha_inicio');
     if(fechaInicioInput) {
         fechaInicioInput.min = new Date().toISOString().split('T')[0];
     }
 
     function abrirModalConfirmacion() {
-        console.log("Forzando apertura del modal...");
-
-        // 1. RECOLECTAR DATOS (Con protección por si están vacíos)
         const inicioVal = document.getElementById('fecha_inicio').value || "Sin fecha";
         const finVal = document.getElementById('fecha_fin').value || "Sin fecha";
-        
         const vehiculoSelect = document.getElementById('vehiculo');
         let vehiculoTexto = "No seleccionado";
         if (vehiculoSelect.selectedIndex >= 0) {
             vehiculoTexto = vehiculoSelect.options[vehiculoSelect.selectedIndex].text;
         }
 
-        // 2. PEGAR DATOS EN EL HTML DEL MODAL
         document.getElementById('modal_vehiculo').textContent = vehiculoTexto;
         document.getElementById('modal_inicio').textContent = inicioVal;
         document.getElementById('modal_fin').textContent = finVal;
 
-        // 3. ABRIR MODAL DIRECTAMENTE (Sin checkValidity)
         try {
             const modalElement = document.getElementById('modalConfirmacion');
             const modal = new bootstrap.Modal(modalElement);
             modal.show();
         } catch (error) {
-            alert("Error al abrir modal: " + error.message);
             console.error(error);
         }
     }
 
     function enviarFormularioReal() {
         const form = document.getElementById('formReserva');
-        // Ahora sí validamos antes de enviar de verdad
         if (form.checkValidity()) {
             form.submit();
         } else {
-            alert("Por favor, rellena todos los campos obligatorios antes de confirmar.");
-            // Cerramos el modal manualmente si falla la validación final
+            alert("Por favor, rellena todos los campos obligatorios.");
             const modalElement = document.getElementById('modalConfirmacion');
             const modal = bootstrap.Modal.getInstance(modalElement); 
             modal.hide();
             form.reportValidity();
         }
     }
-</script>
+   </script>
 </body>
 </html>

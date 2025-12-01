@@ -46,9 +46,26 @@ const obtenerTodosLosUsuarios = (callback) => {
         callback(null, results);
     });
 };
-
+const obtenerUsuarioPorId = (id, callback) => {
+    const sql = `
+        SELECT u.id_usuario, u.nombre, u.correo, u.rol, u.telefono, 
+               c.nombre as nombre_concesionario, c.ciudad as ciudad_concesionario
+        FROM Usuarios u
+        LEFT JOIN Concesionarios c ON u.id_concesionario = c.id_concesionario
+        WHERE u.id_usuario = ?
+    `;
+    
+    pool.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error("Error obteniendo usuario por ID:", err);
+            return callback(err);
+        }
+        callback(null, results.length > 0 ? results[0] : null);
+    });
+};
 module.exports = {
     registrarUsuario,
     obtenerUsuarioPorCorreo,
-    obtenerTodosLosUsuarios 
+    obtenerTodosLosUsuarios,
+    obtenerUsuarioPorId 
 };

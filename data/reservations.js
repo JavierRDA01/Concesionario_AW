@@ -101,11 +101,34 @@ const obtenerTodasLasReservasDetalladas = (callback) => {
     });
 };
 
+const obtenerReservasDeUsuarioDetalladas = (id_usuario, callback) => {
+    const sql = `
+        SELECT r.id_reserva, 
+               CONCAT(v.marca, ' ', v.modelo) as vehiculo,
+               v.matricula,
+               v.imagen,
+               r.fecha_inicio, 
+               r.fecha_fin, 
+               r.estado,
+               r.kilometros_recorridos,
+               r.incidencias_reportadas
+        FROM Reservas r
+        JOIN Vehiculos v ON r.id_vehiculo = v.id_vehiculo
+        WHERE r.id_usuario = ?
+        ORDER BY r.fecha_inicio DESC
+    `;
+    pool.query(sql, [id_usuario], (err, results) => {
+        if (err) return callback(err);
+        callback(null, results);
+    });
+};
+
 module.exports = {
     crearReserva,
     getDashboardStats,
     getUltimasReservas,
     getAllReservations,
     getReservationsByUser,
-    obtenerTodasLasReservasDetalladas
+    obtenerTodasLasReservasDetalladas,
+    obtenerReservasDeUsuarioDetalladas 
 };

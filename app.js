@@ -64,9 +64,8 @@ const authRoutes = require('./routes/auth');
 // const usersRoutes = require('./routes/users');
 // const vehiclesRoutes = require('./routes/vehicles');
 const adminRoutes = require('./routes/admin')
-
 const reservationsRoutes = require('./routes/reservations');
-
+const usersRoutes = require('./routes/users'); 
 /* ... más abajo, después de app.use('/', authRoutes); */
 
 // Ejemplo de ruta temporal para ver el diseño
@@ -75,7 +74,7 @@ const reservationsRoutes = require('./routes/reservations');
 app.use('/', authRoutes);
 app.use('/reservations', reservationsRoutes);
 app.use('/admin', adminRoutes);
-
+app.use('/', usersRoutes);
 
 // app.use('/', usersRoutes);
 // para mensaje app.use('/', vehiclesRoutes);

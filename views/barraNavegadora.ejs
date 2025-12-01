@@ -15,33 +15,64 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/">Inicio</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/vehicles">Vehículos Disponibles</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/reservations/new">Reservar Vehículo</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/my-reservations">Mis Reservas</a>
-                </li>
-                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/dashboard">Administración</a>
-                </li>
+
+                <% if (user) { %>
+                    <% if (user.rol === 'admin') { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/vehicles">Gestión Flota</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/users">Usuarios</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/reservations">Reservas Globales</a>
+                        </li>
+                    
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/vehicles">Vehículos Disponibles</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/reservations/new">Reservar Vehículo</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/my-reservations">Mis Reservas</a>
+                        </li>
+                    <% } %>
+                <% } %>
             </ul>
             
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item">
-                    <button class="btn btn-outline-info btn-sm me-2" type="button" data-bs-toggle="modal" data-bs-target="#accessibilityModal">
-                        Accesibilidad
+                    <button class="btn btn-outline-info btn-sm me-3" type="button" data-bs-toggle="modal" data-bs-target="#accessibilityModal">
+                        <i class="bi bi-universal-access"></i> Accesibilidad
                     </button>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="/login">Iniciar Sesión</a>
-                </li>
-                <li class="nav-item">
-                    <a class="btn btn-danger btn-sm" href="/registro">Registro</a>
-                </li>
+                <% if (user) { %>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> Hola, <%= user.nombre %> 
+                            <span class="badge <%= user.rol === 'admin' ? 'bg-danger' : 'bg-success' %> ms-1">
+                                <%= user.rol.toUpperCase() %>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+                            <li><a class="dropdown-item" href="/profile">Mi Perfil</a></li> <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="/logout">Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                <% } else { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Iniciar Sesión</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="btn btn-danger btn-sm" href="/registro">Registro</a>
+                    </li>
+                <% } %>
             </ul>
         </div>
     </div>
@@ -55,16 +86,15 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <p>Opciones de accesibilidad:</p>
-                <ul>
-                    <li>Cambio de contraste</li>
-                    <li>Tamaño de fuente</li>
-                    <li>Atajos de teclado</li>
-                </ul>
+                <p>Configura la visualización:</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-dark" id="btn-contrast">Alto Contraste</button>
+                    <button class="btn btn-outline-primary" id="btn-font-inc">Aumentar Fuente (+)</button>
+                    <button class="btn btn-outline-primary" id="btn-font-dec">Disminuir Fuente (-)</button>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary">Guardar cambios</button>
             </div>
         </div>
     </div>

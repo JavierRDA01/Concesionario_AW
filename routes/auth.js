@@ -205,4 +205,16 @@ authRouter.post('/login', (req, res)=>{
     });
 });
 
+authRouter.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Error al cerrar sesión:", err);
+            return res.redirect('/'); // Si falla, mandamos a inicio
+        }
+        // Borrar cookie de sesión si es necesario (express-session suele usar 'connect.sid' por defecto)
+        res.clearCookie('connect.sid'); 
+        res.redirect('/login');
+    });
+});
+
 module.exports = authRouter;
