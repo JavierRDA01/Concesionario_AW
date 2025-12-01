@@ -1,3 +1,11 @@
+-- Eliminar tablas si ya existen (importante para recrear la base de datos)
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS Reservas;
+DROP TABLE IF EXISTS Vehiculos;
+DROP TABLE IF EXISTS Usuarios;
+DROP TABLE IF EXISTS Concesionarios;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- Crear la tabla de Concesionarios
 CREATE TABLE Concesionarios (
     id_concesionario INT AUTO_INCREMENT PRIMARY KEY,
@@ -12,7 +20,7 @@ CREATE TABLE Usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
     correo VARCHAR(255) NOT NULL UNIQUE,
-    contraseña VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     rol ENUM('empleado', 'admin') NOT NULL,
     telefono VARCHAR(20),
     id_concesionario INT,
@@ -26,7 +34,7 @@ CREATE TABLE Vehiculos (
     matricula VARCHAR(20) NOT NULL UNIQUE,
     marca VARCHAR(100) NOT NULL,
     modelo VARCHAR(100) NOT NULL,
-    año_matriculacion YEAR,
+    anyo_matriculacion YEAR,
     numero_plazas INT,
     autonomia_km INT,
     color VARCHAR(50),

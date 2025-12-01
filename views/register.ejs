@@ -7,25 +7,18 @@
     <link rel = "stylesheet" href="/css/bootstrap.min.css">
     <title>Registro de Usuario - WibbleUCM</title>
 </head>
-<body class="d-flex justify-content-center align-items-start min-vh-100 bg-light">
+<body class="justify-content-center align-items-end min-vh-100 bg-light">
 
-
-<div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5" >     
+    <%- include('./barraNavegadora.ejs') %>
     
-    <legend class="text-center mb-4">Registrarme en <b class = "rojo"> WibbleUCM</b></legend>
-     <% if(errors && errors.length > 0){ %>
-        <div class = "alert alert-danger alert-dismissible fade show" role = "alert">
-            <h4 class="alert-heading">¡Error de Validación!</h4>
-            <hr>
-            <ul>
-                <% errors.forEach(error => { %>
-                    <li><%= error.msg %></li>
-                <% }) %>
-            </ul>
+    
+    <div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5" >     
+    
+    <legend class="text-center mb-4">Registrar Usuario en <b class = "rojo"> WibbleUCM</b></legend>
 
-        </div>
-    <% } %>
-    <form class="row" action="/registro" method = "POST">
+    <div id="register-feedback" class="mb-3" role="alert" style="display:none;"></div>
+
+    <form id="register-form" class="row">
 
 
             <div class="mb-3">
@@ -61,23 +54,116 @@
                 <label for = "registro_concesionario" class = "form-label">Concesionario</label>
                 <select id="registro_concesionario" name="concesionario" class="form-select">
                     <option selected disabled value="">Selecciona un concesionario</option>
-                    <% concesionarios.forEach(concesionario =>{ %>
-                        <option value = "<%= concesionario.id_concesionario %>"><%= concesionario.nombre %></option>
-                    <% })%>
                 </select>
             </div>
             
             <div class="col-12 text-center">
-                <button type="submit" class="btn btn-danger w-50">Registrarme</button>
-            </div>
-
-            <div class="col-12 text-center mt-3">
-                <span>¿Ya dispones de una cuenta?
-                    <a href="/login" class="rojo">Iniciar Sesión</a>
-                </span>
+                <button type="submit" class="btn btn-danger w-50">Registrar</button>
             </div>
         </form>
     </div>
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function(){
+            const form = document.getElementById('register-form');
+            const feedback = document.getElementById('register-feedback');
+            const selectDealership = document.getElementById('registro_concesionario');
+
+            // Load dealerships from GET /dealerships and populate the select
+            async function loadDealerships(){
+                if (!selectDealership) return;
+                try {
+                    const resp = await fetch('/api/dealerships', {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' },
+                        credentials: 'same-origin'
+                    });
+
+                    const data = await resp.json().catch(() => null);
+
+                    let list = null;
+                    if (!data) return;
+                    // Support both array response and { concesionarios: [...] }
+                    if (Array.isArray(data)) list = data;
+                    else if (Array.isArray(data.concesionarios)) list = data.concesionarios;
+                    else if (Array.isArray(data.items)) list = data.items;
+
+                    if (!list) return;
+
+                    list.forEach(c => {
+                        const opt = document.createElement('option');
+                        // Accept either id_concesionario or id
+                        const id = c.id_concesionario ?? c.id ?? c.idDealer ?? '';
+                        opt.value = id;
+                        opt.textContent = (c.nombre || c.name) + (c.ciudad ? (' — ' + c.ciudad) : '');
+                        selectDealership.appendChild(opt);
+                    });
+
+                } catch (err) {
+                    // loading dealerships is non-fatal; log and continue
+                    console.error('Error loading dealerships', err);
+                }
+            }
+
+            // Call loader immediately
+            loadDealerships();
+
+            function showFeedback(message, type = 'danger'){
+                feedback.style.display = '';
+                feedback.className = 'alert alert-' + type;
+                if (typeof message === 'string') {
+                    feedback.textContent = message;
+                } else if (Array.isArray(message)) {
+                    feedback.innerHTML = '';
+                    message.forEach(m => {
+                        const div = document.createElement('div');
+                        div.textContent = m.msg || m.message || JSON.stringify(m);
+                        feedback.appendChild(div);
+                    });
+                } else {
+                    feedback.textContent = JSON.stringify(message);
+                }
+            }
+
+            form.addEventListener('submit', async function(e){
+                e.preventDefault();
+                feedback.style.display = 'none';
+
+                const formData = {
+                    nombre_completo: form.nombre_completo.value,
+                    correo: form.correo.value,
+                    password: form.password.value,
+                    telefono: form.telefono.value,
+                    rol: form.rol.value,
+                    concesionario: form.concesionario.value
+                };
+
+                try {
+                    const resp = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData),
+                    });
+
+                    const data = await resp.json().catch(() => null);
+
+                    if (!resp.ok) {
+                        // validation errors come as { errors: [...] } or { message }
+                        if (data && data.errors) return showFeedback(data.errors.map(e => ({ msg: e.msg })), 'danger');
+                        const message = (data && data.message) ? data.message : 'Error en el registro.';
+                        return showFeedback(message, 'danger');
+                    }
+
+                    showFeedback('Registro completado con éxito', 'success');
+
+                } catch (err) {
+                    console.error('Register error', err);
+                    showFeedback('No se pudo conectar con el servidor. Inténtalo de nuevo.');
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

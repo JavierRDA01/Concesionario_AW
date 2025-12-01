@@ -1,37 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel = "stylesheet" href = "/css/style.css">
-    <link rel = "stylesheet" href = "/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
     <title>Login de Usuario - WibbleUCM</title>
 </head>
-<body class = "d-flex justify-content-center">
-    <div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5">
-        <legend class="text-center mb-4">Iniciar sesión en <b class = "rojo"> WibbleUCM</b></legend>
-        
-        <% if(error){ %>
-            <div class = "alert alert-danger" role = "alert">
-                <%= error %>
-            </div>
-        <% } %>
 
-        <form class = "row" action = "/login" method = "POST">
-                <div class="mb-3">
-                <label for = "login_correo" class = "form-label">Correo</label>
-                <input class = "form-control" id = "login_correo" name = "correo" type = "text" required>
+<body class="d-flex justify-content-center">
+    <div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5">
+        <legend class="text-center mb-4">Iniciar sesión en <b class="rojo"> WibbleUCM</b></legend>
+
+        <div id="login-feedback" class="mb-3" role="alert" style="display:none;"></div>
+
+        <form id="login-form" class="row">
+            <div class="mb-3">
+                <label for="login_correo" class="form-label">Correo</label>
+                <input class="form-control" id="login_correo" name="correo" type="text" required>
             </div>
             <div class="mb-3">
-                <label for = "login_password" class = "form-label">Contraseña</label>
-                <input type = "password" id = "login_password" class = "form-control" name = "password" required>
+                <label for="login_password" class="form-label">Contraseña</label>
+                <input type="password" id="login_password" class="form-control" name="password" required>
             </div>
             <div class="d-flex justify-content-center">
-                <button type = "submit" class = "btn btn-danger w-50">Iniciar Sesión</button>
+                <button type="submit" class="btn btn-danger w-50">Iniciar Sesión</button>
             </div>
         </form>
     </div>
     <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const form = document.getElementById('login-form');
+            const feedback = document.getElementById('login-feedback');
+
+            function showFeedback(message, type = 'danger') {
+                feedback.style.display = '';
+                feedback.className = 'alert alert-' + type;
+                feedback.textContent = message;
+            }
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                feedback.style.display = 'none';
+
+                const formData = {
+                    correo: form.correo.value,
+                    password: form.password.value
+                };
+
+                try {
+                    const resp = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData),
+                        credentials: 'same-origin'
+                    });
+
+                    const data = await resp.json().catch(() => null);
+
+                    if (!resp.ok) {
+                        const message = (data && data.message) ? data.message : 'Error en el inicio de sesión.';
+                        showFeedback(message, 'danger');
+                        return;
+                    }
+
+                    // Redirect on success
+                    if (data.rol === 'admin') {
+                        window.location.href = '/admin/dashboard';
+                    } else {
+                        window.location.href = '/users/dashboard';
+                    }
+
+                    showFeedback((data && data.message) ? data.message : 'Error en el inicio de sesión.');
+
+                } catch (err) {
+                    console.error('Login error', err);
+                    showFeedback('No se pudo conectar con el servidor. Inténtalo de nuevo.');
+                }
+            });
+        })();
+    </script>
 
 </body>
+
 </html>

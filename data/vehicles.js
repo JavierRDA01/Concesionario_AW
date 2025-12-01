@@ -54,7 +54,7 @@ const crearVehiculo = (data, callback) => {
         callback(null, result);
     });
 };
-const obtenerTodosLosVehiculos = (callback) => {
+const obtenerTodosLosVehiculos = async () => {
         const sql = `
             SELECT v.*, c.nombre as nombre_concesionario 
             FROM Vehiculos v 
@@ -62,7 +62,7 @@ const obtenerTodosLosVehiculos = (callback) => {
             ORDER BY v.id_vehiculo DESC
         `;
 
-        pool.query(sql, [], callback);
+        return await pool.query(sql);
     }
 
 module.exports = {
@@ -70,5 +70,4 @@ module.exports = {
     obtenerVehiculoPorId,
     crearVehiculo,
     obtenerTodosLosVehiculos
-
 };

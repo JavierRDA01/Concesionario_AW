@@ -1,4 +1,5 @@
 const { check, validationResult } = require("express-validator");
+const dealershipDataAccess = require("../data/dealerships");
 
 const dealershipValidationRules = [
   check("nombre")
@@ -19,12 +20,16 @@ const dealershipValidationRules = [
     .withMessage("El teléfono debe contener solo números (7-15 dígitos)")
 ];
 
-const validate = (req, res, next) => {
+const validate = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.render("createDealership", {
+    return res.render("admin_dealerships", {
       errors: errors.mapped(),
+      successMessage: null,
+      user: req.session.user,
+      openModal: true,
+      concesionarios: await dealershipDataAccess.obtenerConcesionarios()
     });
   }
 
