@@ -75,7 +75,7 @@
                     </div>
                 <% } %>
 
-                <div class="card shadow-sm border-top">
+                <div class="card shadow-sm border-top border-danger border-4">
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover table-striped mb-0 align-middle">
@@ -91,17 +91,25 @@
                                 </thead>
                                 <tbody>
                                     <% if(vehiculos.length === 0) { %>
-                                        <tr><td colspan="6" class="text-center py-3">No hay vehículos.</td></tr>
+                                        <tr><td colspan="6" class="text-center py-3">No hay vehículos registrados.</td></tr>
                                     <% } else { %>
                                         <% vehiculos.forEach(v => { %>
                                         <tr>
                                             <td>
-                                                <div class="bg-white border rounded d-flex align-items-center justify-content-center text-secondary" style="width: 50px; height: 35px;">
-                                                    <i class="bi bi-car-front-fill"></i>
-                                                </div>
+                                                <% if(v.imagen && v.imagen !== 'default_car.jpg') { %>
+                                                    <img src="/img/<%= v.imagen %>" 
+                                                        alt="Foto" 
+                                                        class="rounded border" 
+                                                        style="width: 50px; height: 35px; object-fit: cover;">
+                                                <% } else { %>
+                                                    <div class="bg-white border rounded d-flex align-items-center justify-content-center text-secondary" style="width: 50px; height: 35px;">
+                                                        <i class="bi bi-car-front-fill"></i>
+                                                    </div>
+                                                <% } %>
                                             </td>
                                             <td>
                                                 <strong><%= v.marca %></strong> <%= v.modelo %>
+                                                <br><small class="text-muted">Año: <%= v.año_matriculacion %></small>
                                             </td>
                                             <td><span class="badge bg-light text-dark border"><%= v.matricula %></span></td>
                                             <td><%= v.nombre_concesionario %></td>
@@ -152,7 +160,7 @@
                     <h5 class="modal-title"><i class="bi bi-car-front-fill"></i> Alta de Vehículo</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="/admin/vehicles/new" method="POST">
+                <form action="/admin/vehicles/new" method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -197,8 +205,9 @@
                                 </select>
                             </div>
                             <div class="col-12">
-                                <label class="form-label fw-bold">Nombre de imagen</label>
-                                <input type="text" name="imagen" class="form-control" placeholder="ej: tesla_model3.jpg">
+                                <label class="form-label fw-bold">Imagen del vehículo</label>
+                                <input type="file" name="imagen" class="form-control" accept="image/*">
+                                <div class="form-text">Formatos: JPG, PNG, WEBP. Máx 2MB.</div>
                             </div>
                         </div>
                     </div>
@@ -218,8 +227,10 @@
                     <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Vehículo</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="/admin/vehicles/edit" method="POST">
+                <form action="/admin/vehicles/edit" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="id_vehiculo" id="edit_id">
+                    <input type="hidden" name="current_imagen" id="edit_current_imagen">
+
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -260,9 +271,15 @@
                                     <% } %>
                                 </select>
                             </div>
+                            
                             <div class="col-12">
                                 <label class="form-label fw-bold">Imagen</label>
-                                <input type="text" name="imagen" id="edit_imagen" class="form-control">
+                                <div class="d-flex align-items-center mb-2 p-2 border rounded bg-light">
+                                    <img id="edit_preview" src="" alt="Vista previa" class="me-3 rounded" style="width: 80px; height: 60px; object-fit: cover;">
+                                    <div class="small text-muted" id="edit_filename_text">Ninguna imagen seleccionada</div>
+                                </div>
+                                <input type="file" name="imagen" id="edit_imagen_input" class="form-control" accept="image/*">
+                                <div class="form-text">Sube un archivo para cambiar la foto actual.</div>
                             </div>
                         </div>
                     </div>
@@ -338,7 +355,7 @@
         }
 
         function abrirModalEditar(vehiculo) {
-            // Rellenamos los campos del formulario con los datos del objeto JSON
+            // Rellenamos los campos del formulario
             document.getElementById('edit_id').value = vehiculo.id_vehiculo;
             document.getElementById('edit_matricula').value = vehiculo.matricula;
             document.getElementById('edit_marca').value = vehiculo.marca;
@@ -348,7 +365,21 @@
             document.getElementById('edit_autonomia').value = vehiculo.autonomia_km;
             document.getElementById('edit_color').value = vehiculo.color;
             document.getElementById('edit_concesionario').value = vehiculo.id_concesionario;
-            document.getElementById('edit_imagen').value = vehiculo.imagen;
+            
+            // Imagen: guardamos el nombre actual en un input hidden
+            document.getElementById('edit_current_imagen').value = vehiculo.imagen;
+            
+            // Lógica de previsualización
+            const previewImg = document.getElementById('edit_preview');
+            const filenameText = document.getElementById('edit_filename_text');
+            
+            if(vehiculo.imagen && vehiculo.imagen !== 'default_car.jpg') {
+                previewImg.src = '/images/' + vehiculo.imagen;
+                filenameText.textContent = 'Imagen actual: ' + vehiculo.imagen;
+            } else {
+                previewImg.src = 'https://placehold.co/600x400?text=Sin+Imagen';
+                filenameText.textContent = 'Usando imagen por defecto';
+            }
 
             const modal = new bootstrap.Modal(document.getElementById('modalEditarVehiculo'));
             modal.show();

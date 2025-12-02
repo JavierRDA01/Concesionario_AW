@@ -1,11 +1,46 @@
 const express = require('express');
 const adminRouter = express.Router();
+const path = require('path'); 
+const multer = require('multer');
 const adminQueries = require('../data/admin'); 
 const vehiclesQueries = require('../data/vehicles');
 const dealershipsQueries = require('../data/dealerships');
 const reservationsQueries = require('../data/reservations');
 const userQueries = require('../data/users');
+const fs = require('fs');
+const importQueries = require('../data/import'); // <--- Importamos el nuevo módulo
 
+// Configuración Multer para JSON (memoria, no disco, para procesarlo al vuelo)
+const uploadJSON = multer({ storage: multer.memoryStorage() });
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        // Guardamos las fotos en la carpeta pública
+    cb(null, 'public/img');    
+},
+    filename: function (req, file, cb) {
+        // Generamos un nombre único: imagen-fecha-numeroaleatorio.extensión
+        // Ejemplo: vehiculo-168985555-123.jpg
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'vehiculo-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 2 * 1024 * 1024 }, // Límite de 2MB
+    fileFilter: (req, file, cb) => {
+        // Validar que sea una imagen
+        const filetypes = /jpeg|jpg|png|webp/;
+        const mimetype = filetypes.test(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+        if (mimetype && extname) {
+            return cb(null, true);
+        }
+        cb(new Error('Error: Solo se permiten imágenes (jpeg, jpg, png, webp)'));
+    }
+});
 // Middleware para proteger la ruta: Solo entra si es admin
 const verificarAdmin = (req, res, next) => {
     // Si el usuario existe en sesión y su rol es 'admin'
@@ -61,17 +96,18 @@ adminRouter.get('/vehicles', verificarAdmin, (req, res) => {
 });
 
 // 2. PROCESAR EL ALTA DE VEHÍCULO
-adminRouter.post('/vehicles/new', verificarAdmin, (req, res) => {
+adminRouter.post('/vehicles/new', verificarAdmin, upload.single('imagen'), (req, res) => {
     
     let matricula = req.body.matricula ? req.body.matricula.toUpperCase().trim() : '';
     const formatoMatricula = /^\d{4}-[A-Z]{3}$/;
 
-    // VALIDACIÓN DE FORMATO
     if (!formatoMatricula.test(matricula)) {
         req.session.error_msg = 'Error: La matrícula debe cumplir el formato 9900-NOP.';
-        // Guardamos y redirigimos
         return req.session.save(() => res.redirect('/admin/vehicles'));
     }
+
+    // Si se subió un archivo, usamos su nombre. Si no, la default.
+    const imagenNombre = req.file ? req.file.filename : 'default_car.jpg';
 
     const newCar = {
         matricula: matricula,
@@ -82,23 +118,19 @@ adminRouter.post('/vehicles/new', verificarAdmin, (req, res) => {
         autonomia: req.body.autonomia,
         color: req.body.color,
         id_concesionario: req.body.id_concesionario,
-        imagen: req.body.imagen
+        imagen: imagenNombre // <--- Usamos el nombre generado
     };
     
     vehiclesQueries.crearVehiculo(newCar, (err) => {
         if (err) {
             console.error("Error creando vehículo:", err);
-            // DETECCIÓN DE DUPLICADOS
             if (err.code === 'ER_DUP_ENTRY') {
-                 req.session.error_msg = `Error: La matrícula ${matricula} ya existe en el sistema.`;
+                 req.session.error_msg = `Error: La matrícula ${matricula} ya existe.`;
             } else {
                  req.session.error_msg = 'Error interno al crear el vehículo.';
             }
-            // Guardamos error y redirigimos a la URL limpia
             return req.session.save(() => res.redirect('/admin/vehicles'));
         }
-
-        // ÉXITO
         req.session.success_msg = 'Vehículo registrado correctamente.';
         req.session.save(() => res.redirect('/admin/vehicles'));
     });
@@ -174,11 +206,14 @@ adminRouter.post('/vehicles/status', verificarAdmin, (req, res) => {
         req.session.save(() => res.redirect('/admin/vehicles'));
     });
 });
-
-adminRouter.post('/vehicles/edit', verificarAdmin, (req, res) => {
+adminRouter.post('/vehicles/edit', verificarAdmin, upload.single('imagen'), (req, res) => {
     const id = req.body.id_vehiculo;
     
-    // Objeto con los datos del formulario
+    // Lógica para la imagen: 
+    // 1. Si sube nueva (req.file), usamos esa.
+    // 2. Si no sube nada, mantenemos la que tenía (req.body.current_imagen).
+    const imagenFinal = req.file ? req.file.filename : req.body.current_imagen;
+
     const updatedCar = {
         matricula: req.body.matricula.toUpperCase().trim(),
         marca: req.body.marca,
@@ -188,13 +223,12 @@ adminRouter.post('/vehicles/edit', verificarAdmin, (req, res) => {
         autonomia: req.body.autonomia,
         color: req.body.color,
         id_concesionario: req.body.id_concesionario,
-        imagen: req.body.imagen
+        imagen: imagenFinal // <--- Imagen actualizada o mantenida
     };
 
     vehiclesQueries.actualizarVehiculo(id, updatedCar, (err) => {
         if (err) {
-            // Si falla (por ejemplo, matrícula duplicada al editar)
-            req.session.error_msg = 'Error al editar: Revisa los datos o si la matrícula ya existe.';
+            req.session.error_msg = 'Error al editar el vehículo.';
             return req.session.save(() => res.redirect('/admin/vehicles'));
         }
         req.session.success_msg = 'Vehículo actualizado correctamente.';
@@ -214,5 +248,67 @@ adminRouter.post('/vehicles/delete', verificarAdmin, (req, res) => {
         req.session.success_msg = 'Vehículo eliminado del sistema.';
         req.session.save(() => res.redirect('/admin/vehicles'));
     });
+});
+
+// 1. GET: Mostrar formulario de subida
+adminRouter.get('/import', verificarAdmin, (req, res) => {
+    res.render('admin_import', { user: req.session.user });
+});
+
+// 2. POST: Recibir archivo y analizar conflictos
+adminRouter.post('/import/preview', verificarAdmin, uploadJSON.single('fichero_json'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).send("Por favor, sube un archivo JSON.");
+
+        // Leemos el JSON desde el buffer de memoria
+        const jsonData = JSON.parse(req.file.buffer.toString());
+
+        // Procesamos para ver qué pasaría (sin guardar aún)
+        const reporte = await importQueries.procesarArchivoJSON(jsonData);
+
+        // Guardamos los datos en sesión temporalmente para el paso de confirmación
+        req.session.importData = {
+            nuevos: reporte.vehiculosNuevos,
+            conflictivos: reporte.vehiculosConflictivos
+        };
+
+        // Renderizamos la vista de confirmación
+        res.render('admin_import_preview', { 
+            user: req.session.user,
+            reporte: reporte
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error procesando el archivo JSON: " + error.message);
+    }
+});
+
+// 3. POST: Confirmar y ejecutar
+adminRouter.post('/import/confirm', verificarAdmin, async (req, res) => {
+    try {
+        const importData = req.session.importData;
+        if (!importData) return res.redirect('/admin/import');
+
+        // Filtramos: ¿El usuario marcó el checkbox "actualizar"?
+        // Si req.body.actualizar es 'yes', actualizamos los conflictivos. Si no, los ignoramos.
+        const vehiculosAActualizar = (req.body.actualizar === 'yes') ? importData.conflictivos : [];
+        
+        // Ejecutamos la importación real
+        const logs = await importQueries.ejecutarImportacion(importData.nuevos, vehiculosAActualizar);
+
+        // Limpiamos sesión
+        delete req.session.importData;
+
+        // Renderizamos resultado (Logs)
+        res.render('admin_import_result', {
+            user: req.session.user,
+            logs: logs
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error ejecutando la importación.");
+    }
 });
 module.exports = adminRouter;

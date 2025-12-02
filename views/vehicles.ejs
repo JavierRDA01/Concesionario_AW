@@ -50,8 +50,9 @@
                         <% vehiculos.forEach(v => { %>
                             <div class="col">
                                 <div class="card h-100 shadow-sm border-0 car-card">
+                                    
                                     <% if(v.imagen && v.imagen !== 'default_car.jpg') { %>
-                                        <img src="/images/<%= v.imagen %>" class="card-img-top" alt="<%= v.modelo %>" onerror="this.src='https://placehold.co/600x400?text=Sin+Imagen'">
+                                        <img src="/img/<%= v.imagen %>" class="card-img-top" alt="<%= v.modelo %>" onerror="this.src='https://placehold.co/600x400?text=Sin+Imagen'">
                                     <% } else { %>
                                         <div class="bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 180px;"><i class="bi bi-car-front display-1"></i></div>
                                     <% } %>

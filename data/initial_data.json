@@ -1,0 +1,48 @@
+[
+    {
+        "nombre": "Wibble Madrid Centro",
+        "ciudad": "Madrid",
+        "direccion": "Calle Gran Vía, 24",
+        "telefono": "915000001",
+        "vehiculos": [
+            {
+                "matricula": "1234-BCD",
+                "marca": "Tesla",
+                "modelo": "Model 3",
+                "anio": 2023,
+                "plazas": 5,
+                "autonomia": 500,
+                "color": "Blanco",
+                "imagen": "tesla_model3.jpg"
+            },
+            {
+                "matricula": "5678-FGH",
+                "marca": "Renault",
+                "modelo": "Zoe",
+                "anio": 2022,
+                "plazas": 5,
+                "autonomia": 390,
+                "color": "Azul",
+                "imagen": "renault_zoe.jpg"
+            }
+        ]
+    },
+    {
+        "nombre": "Wibble Barcelona Puerto",
+        "ciudad": "Barcelona",
+        "direccion": "Avinguda del Paral·lel, 10",
+        "telefono": "934000001",
+        "vehiculos": [
+            {
+                "matricula": "9012-JKL",
+                "marca": "Nissan",
+                "modelo": "Leaf",
+                "anio": 2021,
+                "plazas": 5,
+                "autonomia": 270,
+                "color": "Gris",
+                "imagen": "nissan_leaf.jpg"
+            }
+        ]
+    }
+]

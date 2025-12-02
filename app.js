@@ -9,7 +9,6 @@ const MySQLStore = mysqlSession(session);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 // Middleware
 app.use(morgan('dev'));
 app.use(express.json());
@@ -45,6 +44,7 @@ app.set('view engine', 'ejs');
 app.get('/', (req ,res)=>{
     res.render('index')
 })
+
 
 
 // Routes

@@ -61,7 +61,7 @@
                     </div>
                 <% } %>
                 
-                <div class="card shadow-sm">
+                <div class="card shadow-sm border-top">
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover table-striped mb-0 align-middle">
@@ -72,25 +72,20 @@
                                         <th>Ciudad</th>
                                         <th>Dirección</th>
                                         <th>Teléfono</th>
-                                        <th class="text-end">Acciones</th>
-                                    </tr>
+                                        </tr>
                                 </thead>
                                 <tbody>
                                     <% if(concesionarios.length === 0) { %>
-                                        <tr><td colspan="6" class="text-center py-3">No hay concesionarios registrados.</td></tr>
+                                        <tr><td colspan="5" class="text-center py-3">No hay concesionarios registrados.</td></tr>
                                     <% } else { %>
                                         <% concesionarios.forEach(c => { %>
                                         <tr>
                                             <td>#<%= c.id_concesionario %></td>
-                                            <td class="fw-bold"><%= c.nombre %></td>
+                                            <td class="fw-bold text-danger"><%= c.nombre %></td>
                                             <td><span class="badge bg-light text-dark border"><%= c.ciudad %></span></td>
                                             <td><small class="text-muted"><i class="bi bi-geo-alt"></i> <%= c.direccion %></small></td>
                                             <td><%= c.telefono_contacto || '-' %></td>
-                                            <td class="text-end">
-                                                <button class="btn btn-sm btn-outline-dark" title="Editar"><i class="bi bi-pencil"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
-                                            </td>
-                                        </tr>
+                                            </tr>
                                         <% }) %>
                                     <% } %>
                                 </tbody>
