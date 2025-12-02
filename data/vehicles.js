@@ -81,11 +81,62 @@ const obtenerVehiculosDisponiblesPorConcesionario = (id_concesionario, callback)
         callback(null, results);
     });
 };
+const actualizarEstadoVehiculo = (id, nuevoEstado, callback) => {
+    const sql = "UPDATE Vehiculos SET estado = ? WHERE id_vehiculo = ?";
+    pool.query(sql, [nuevoEstado, id], (err, result) => {
+        if (err) {
+            console.error("Error cambiando estado del vehículo:", err);
+            return callback(err);
+        }
+        callback(null, result);
+    });
+};
+const actualizarVehiculo = (id, data, callback) => {
+    const sql = `
+        UPDATE Vehiculos 
+        SET matricula = ?, marca = ?, modelo = ?, año_matriculacion = ?, 
+            numero_plazas = ?, autonomia_km = ?, color = ?, id_concesionario = ?, imagen = ?
+        WHERE id_vehiculo = ?
+    `;
+    const values = [
+        data.matricula,
+        data.marca,
+        data.modelo,
+        data.anio,
+        data.plazas,
+        data.autonomia,
+        data.color,
+        data.id_concesionario,
+        data.imagen,
+        id
+    ];
+
+    pool.query(sql, values, (err, result) => {
+        if (err) {
+            console.error("Error actualizando vehículo:", err);
+            return callback(err);
+        }
+        callback(null, result);
+    });
+};
+
+const eliminarVehiculo = (id, callback) => {
+    const sql = "DELETE FROM Vehiculos WHERE id_vehiculo = ?";
+    pool.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error("Error eliminando vehículo:", err);
+            return callback(err);
+        }
+        callback(null, result);
+    });
+};
 module.exports = {
     obtenerVehiculosDisponibles,
     obtenerVehiculoPorId,
     crearVehiculo,
     obtenerTodosLosVehiculos,
-    obtenerVehiculosDisponiblesPorConcesionario
-
+    obtenerVehiculosDisponiblesPorConcesionario,
+    actualizarEstadoVehiculo,
+    actualizarVehiculo,
+    eliminarVehiculo
 };

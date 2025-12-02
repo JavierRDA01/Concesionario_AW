@@ -1,82 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel = "stylesheet" href="/css/style.css">
-    <link rel = "stylesheet" href="/css/bootstrap.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <title>Registro de Usuario - WibbleUCM</title>
 </head>
-<body class="d-flex justify-content-center align-items-start min-vh-100 bg-light">
-
-
-<div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5 mt-5" >     
+<body class="bg-light">
     
-    <legend class="text-center mb-4">Registrarme en <b class = "rojo"> WibbleUCM</b></legend>
-     <% if(errors && errors.length > 0){ %>
-        <div class = "alert alert-danger alert-dismissible fade show" role = "alert">
-            <h4 class="alert-heading">¡Error de Validación!</h4>
-            <hr>
-            <ul>
-                <% errors.forEach(error => { %>
-                    <li><%= error.msg %></li>
-                <% }) %>
-            </ul>
+    <%- include('./barraNavegadora.ejs') %>
 
+    <div class="container d-flex justify-content-center align-items-start mt-5 mb-5">     
+        <div class="bg-white rounded-3 shadow p-4 col-12 col-md-8 col-lg-6 col-xl-5">
+            <legend class="text-center mb-4">Registrarme en <b class="rojo">WibbleUCM</b></legend>
+            
+            <% if(locals.errors && errors.length > 0){ %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h4 class="alert-heading fs-6 fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Error de Validación</h4>
+                    <hr class="my-2">
+                    <ul class="mb-0 small ps-3">
+                        <% errors.forEach(error => { %>
+                            <li><%= error.msg %></li>
+                        <% }) %>
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <% } %>
+
+            <form class="row" action="/registro" method="POST">
+                <div class="mb-3">
+                    <label for="registro_nombre_completo" class="form-label">Nombre completo</label>
+                    <input class="form-control" id="registro_nombre_completo" type="text" name="nombre_completo" value="<%= oldInput && oldInput.nombre_completo ? oldInput.nombre_completo : '' %>" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="registro_correo" class="form-label">Correo electrónico</label>
+                    <input class="form-control" id="registro_correo" type="email" name="correo" placeholder="Debe acabar en @ucm.es" value="<%= oldInput && oldInput.correo ? oldInput.correo : '' %>" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="registro_password" class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" id="registro_password" name="password" required>
+                    <div class="form-text small">Mínimo 8 caracteres, una mayúscula, una minúscula y un número.</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="registro_telefono" class="form-label">Teléfono</label>
+                    <input class="form-control" id="registro_telefono" name="telefono" placeholder="Ej: 123456789" type="tel" value="<%= oldInput && oldInput.telefono ? oldInput.telefono : '' %>">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="registro_rol" class="form-label">Rol</label>
+                    <select id="registro_rol" name="rol" class="form-select">
+                        <option value="empleado" <%= (oldInput && oldInput.rol === 'empleado') ? 'selected' : '' %>>Empleado</option>
+                        <option value="admin" <%= (oldInput && oldInput.rol === 'admin') ? 'selected' : '' %>>Administrador</option>
+                    </select>                
+                </div>
+
+                <div class="mb-3">
+                    <label for="registro_concesionario" class="form-label">Concesionario</label>
+                    <select id="registro_concesionario" name="concesionario" class="form-select" required>
+                        <option selected disabled value="">Selecciona tu base</option>
+                        <% if(concesionarios) { %>
+                            <% concesionarios.forEach(c => { %>
+                                <option value="<%= c.id_concesionario %>" <%= (oldInput && oldInput.concesionario == c.id_concesionario) ? 'selected' : '' %>>
+                                    <%= c.nombre %>
+                                </option>
+                            <% }) %>
+                        <% } %>
+                    </select>
+                </div>
+                
+                <div class="col-12 text-center mt-3">
+                    <button type="submit" class="btn btn-danger w-50">Registrarme</button>
+                </div>
+
+                <div class="col-12 text-center mt-3">
+                    <span>¿Ya dispones de una cuenta? <a href="/login" class="rojo">Iniciar Sesión</a></span>
+                </div>
+            </form>
         </div>
-    <% } %>
-    <form class="row" action="/registro" method = "POST">
-
-
-            <div class="mb-3">
-                <label for = "registro_nombre_completo" class="form-label">Nombre completo</label>
-                <input class = "form-control" id = "registro_nombre_completo" type="text" name = "nombre_completo" required>
-            </div>
-
-            <div class="mb-3">
-                <label for = "registro_correo" class = "form-label">Correo electrónico</label>
-                <input class = "form-control" id = "registro_correo" type = "email" name = "correo" placeholder="Debe acabar en @ucm.es" required>
-            </div>
-
-            <div class="mb-3">
-                <label for = "registro_password" class="form-label">Contraseña</label>
-                <input type = "password" class = "form-control" id = "registro_password" name = "password" required>
-            </div>
-            
-            <div class="mb-3">
-                <label for = "registro_telefono" class = "form-label">Teléfono</label>
-                <input class = "form-control" id = "registro_telefono" name = "telefono" placeholder="Ej: 123456789" type="tel">
-            </div>
-            
-            <div class="mb-3">
-                <label for="registro_rol" class="form-label">Rol</label>
-                <select id="registro_rol" name="rol" class="form-select">
-                    <option value="empleado">Empleado</option>
-                    <option value="admin">Administrador</option>
-                </select>                
-            </div>
-
-
-            <div class="mb-3">
-                <label for = "registro_concesionario" class = "form-label">Concesionario</label>
-                <select id="registro_concesionario" name="concesionario" class="form-select">
-                    <option selected disabled value="">Selecciona un concesionario</option>
-                    <% concesionarios.forEach(concesionario =>{ %>
-                        <option value = "<%= concesionario.id_concesionario %>"><%= concesionario.nombre %></option>
-                    <% })%>
-                </select>
-            </div>
-            
-            <div class="col-12 text-center">
-                <button type="submit" class="btn btn-danger w-50">Registrarme</button>
-            </div>
-
-            <div class="col-12 text-center mt-3">
-                <span>¿Ya dispones de una cuenta?
-                    <a href="/login" class="rojo">Iniciar Sesión</a>
-                </span>
-            </div>
-        </form>
     </div>
     <script src="js/bootstrap.bundle.min.js"></script>
 </body>

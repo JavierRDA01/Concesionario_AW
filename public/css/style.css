@@ -33,3 +33,47 @@ a.rojo:focus {
 .verde:focus {
     color: #1b5e20;
 }
+
+/* --- ACCESIBILIDAD --- */
+
+/* Modo Alto Contraste */
+body.high-contrast {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+body.high-contrast .bg-light, 
+body.high-contrast .bg-white, 
+body.high-contrast .card,
+body.high-contrast .modal-content,
+body.high-contrast .sidebar {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+body.high-contrast .text-dark, 
+body.high-contrast .text-muted,
+body.high-contrast .nav-link {
+    color: #ffffff !important;
+}
+
+body.high-contrast a {
+    color: #ffff00 !important; /* Amarillo para enlaces */
+    text-decoration: underline !important;
+}
+
+body.high-contrast .btn-danger, 
+body.high-contrast .bg-danger {
+    background-color: #b30000 !important;
+    border-color: #ff0000 !important;
+}
+
+/* Tamaños de fuente */
+body.font-large {
+    font-size: 1.2rem !important;
+}
+
+body.font-small {
+    font-size: 0.85rem !important;
+}

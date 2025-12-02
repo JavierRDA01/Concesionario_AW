@@ -54,15 +54,16 @@
                 <div class="card shadow-sm">
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0 align-middle">
+                            <table class="table table-hover table-striped mb-0 align-middle" style="table-layout: fixed; width: 100%;">
                                 <thead class="bg-dark text-white">
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Usuario</th>
-                                        <th>Vehículo</th>
-                                        <th>Fechas</th>
-                                        <th>Estado</th>
-                                        <th style="width: 30%;">Incidencias</th> </tr>
+                                        <th style="width: 5%;">ID</th>
+                                        <th style="width: 15%;">Usuario</th>
+                                        <th style="width: 20%;">Vehículo</th>
+                                        <th style="width: 20%;">Fechas y Horas</th>
+                                        <th style="width: 10%;">Estado</th>
+                                        <th style="width: 30%;">Incidencias</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     <% if(reservas.length === 0) { %>
@@ -70,13 +71,33 @@
                                     <% } else { %>
                                         <% reservas.forEach(r => { %>
                                         <tr>
-                                            <td><strong>#<%= r.id_reserva %></strong></td>
-                                            <td><%= r.nombre_usuario %></td>
-                                            <td><%= r.vehiculo %></td>
+                                            <td class="text-truncate"><strong>#<%= r.id_reserva %></strong></td>
+                                            <td class="text-truncate" title="<%= r.nombre_usuario %>">
+                                                <span class="fw-bold text-dark"><%= r.nombre_usuario %></span>
+                                            </td>
+                                            <td class="text-truncate" title="<%= r.vehiculo %>">
+                                                <span class="text-muted"><%= r.vehiculo %></span>
+                                            </td>
                                             <td>
                                                 <div class="d-flex flex-column small">
-                                                    <span><strong>Inicio:</strong> <%= new Date(r.fecha_inicio).toLocaleDateString() %></span>
-                                                    <span><strong>Fin:</strong> <%= new Date(r.fecha_fin).toLocaleDateString() %></span>
+                                                    <div class="mb-1 text-truncate">
+                                                        <span class="badge bg-light text-secondary border me-1">INICIO</span>
+                                                        <strong>
+                                                            <%= new Date(r.fecha_inicio).toLocaleString('es-ES', {
+                                                                day: '2-digit', month: '2-digit', year: 'numeric', 
+                                                                hour: '2-digit', minute: '2-digit'
+                                                            }) %>
+                                                        </strong>
+                                                    </div>
+                                                    <div class="text-truncate">
+                                                        <span class="badge bg-light text-secondary border me-1" style="width: 48px;">FIN</span>
+                                                        <strong>
+                                                            <%= new Date(r.fecha_fin).toLocaleString('es-ES', {
+                                                                day: '2-digit', month: '2-digit', year: 'numeric', 
+                                                                hour: '2-digit', minute: '2-digit'
+                                                            }) %>
+                                                        </strong>
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td>
@@ -88,10 +109,10 @@
                                                     <span class="badge bg-danger"><%= r.estado %></span>
                                                 <% } %>
                                             </td>
-                                            <td>
+                                            <td class="text-break">
                                                 <% if(r.incidencias_reportadas && r.incidencias_reportadas.trim() !== '') { %>
                                                     <div class="alert alert-warning p-2 mb-0 small d-flex align-items-start">
-                                                        <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+                                                        <i class="bi bi-exclamation-triangle-fill me-2 mt-1 flex-shrink-0"></i>
                                                         <span><%= r.incidencias_reportadas %></span>
                                                     </div>
                                                 <% } else { %>

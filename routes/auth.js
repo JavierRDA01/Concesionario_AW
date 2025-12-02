@@ -167,27 +167,33 @@ authRouter.post('/login', (req, res)=>{
                 }
 
                 if (isMatch) {
-                    // ¡Éxito! La contraseña coincide.
-                    
                     // 5. Creamos la sesión del usuario
-                    // Guardamos solo datos no sensibles
                     req.session.user = {
                         id_usuario: usuario.id_usuario,
                         nombre: usuario.nombre,
                         correo: usuario.correo,
                         rol: usuario.rol,
-                        id_concesionario: usuario.id_concesionario
+                        id_concesionario: usuario.id_concesionario,
+                        preferencias_accesibilidad: usuario.preferencias_accesibilidad // Añadido por si acaso para la accesibilidad
                     };
 
                     console.log("Usuario logueado:", req.session.user);
-                    // 6. Redirigimos según el rol (Asegúrate que los roles en la BBDD son 'admin' y 'empleado' como en el SQL)
-                    if (usuario.rol === 'admin') { 
-                        // Redirige al dashboard de admin (deberás crear esta ruta)
-                        return res.redirect('/admin/dashboard'); 
-                    } else {
-                        // Redirige al dashboard de empleado (deberás crear esta ruta)
-                        return res.redirect('/users/dashboard'); 
-                    }
+
+                    // --- CAMBIO AQUÍ ---
+                    // Usamos save() para asegurar que se escribe en MySQL antes de redirigir
+                    req.session.save((err) => {
+                        if (err) {
+                            console.error("Error al guardar la sesión:", err);
+                            return res.status(500).render('error', { mensaje: "Error al iniciar sesión." });
+                        }
+
+                        // 6. Redirigimos solo cuando el guardado ha terminado
+                        if (usuario.rol === 'admin') { 
+                            return res.redirect('/admin/dashboard'); 
+                        } else {
+                            return res.redirect('/users/dashboard'); 
+                        }
+                    });
 
                 } else {
                     // Contraseña incorrecta

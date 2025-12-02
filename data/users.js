@@ -63,9 +63,25 @@ const obtenerUsuarioPorId = (id, callback) => {
         callback(null, results.length > 0 ? results[0] : null);
     });
 };
+
+const actualizarPreferencias = (id_usuario, preferencias, callback) => {
+    // Convertimos el objeto JS a string JSON para guardarlo
+    const preferenciasJSON = JSON.stringify(preferencias);
+    
+    const sql = `UPDATE Usuarios SET preferencias_accesibilidad = ? WHERE id_usuario = ?`;
+    
+    pool.query(sql, [preferenciasJSON, id_usuario], (err, result) => {
+        if (err) {
+            console.error("Error actualizando preferencias:", err);
+            return callback(err);
+        }
+        callback(null, result);
+    });
+};
 module.exports = {
     registrarUsuario,
     obtenerUsuarioPorCorreo,
     obtenerTodosLosUsuarios,
-    obtenerUsuarioPorId 
+    obtenerUsuarioPorId,
+    actualizarPreferencias 
 };

@@ -56,10 +56,26 @@
                 </div>
 
                 <% if (typeof error_msg !== 'undefined' && error_msg) { %> 
-                    <div class="alert alert-danger"><%= error_msg %></div>
+                    <div class="alert alert-warning alert-dismissible fade show border-start border-warning border-4 shadow-sm" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+                            <div><strong>Atención:</strong> <%= error_msg %></div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 <% } %>
 
-                <div class="card shadow-sm">
+                <% if (typeof success_msg !== 'undefined' && success_msg) { %> 
+                    <div class="alert alert-success alert-dismissible fade show border-start border-success border-4 shadow-sm" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
+                            <div><%= success_msg %></div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <% } %>
+
+                <div class="card shadow-sm border-top">
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover table-striped mb-0 align-middle">
@@ -74,34 +90,52 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% vehiculos.forEach(v => { %>
-                                    <tr>
-                                        <td>
-                                            <div class="bg-secondary rounded d-flex align-items-center justify-content-center text-white" style="width: 50px; height: 35px;">
-                                                <i class="bi bi-car-front-fill"></i>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <strong><%= v.marca %></strong> <%= v.modelo %>
-                                            <br><small class="text-muted"><%= v.año_matriculacion %></small>
-                                        </td>
-                                        <td><span class="badge bg-light text-dark border"><%= v.matricula %></span></td>
-                                        <td><%= v.nombre_concesionario %></td>
-                                        <td>
-                                            <% if(v.estado === 'disponible') { %>
-                                                <span class="badge bg-success">Disponible</span>
-                                            <% } else if(v.estado === 'mantenimiento') { %>
-                                                <span class="badge bg-warning text-dark">Mantenimiento</span>
-                                            <% } else { %>
-                                                <span class="badge bg-secondary"><%= v.estado %></span>
-                                            <% } %>
-                                        </td>
-                                        <td class="text-end">
-                                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
-                                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                    <% }) %>
+                                    <% if(vehiculos.length === 0) { %>
+                                        <tr><td colspan="6" class="text-center py-3">No hay vehículos.</td></tr>
+                                    <% } else { %>
+                                        <% vehiculos.forEach(v => { %>
+                                        <tr>
+                                            <td>
+                                                <div class="bg-white border rounded d-flex align-items-center justify-content-center text-secondary" style="width: 50px; height: 35px;">
+                                                    <i class="bi bi-car-front-fill"></i>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong><%= v.marca %></strong> <%= v.modelo %>
+                                            </td>
+                                            <td><span class="badge bg-light text-dark border"><%= v.matricula %></span></td>
+                                            <td><%= v.nombre_concesionario %></td>
+                                            <td>
+                                                <% if(v.estado === 'disponible') { %>
+                                                    <span class="badge bg-success">Disponible</span>
+                                                <% } else if(v.estado === 'mantenimiento') { %>
+                                                    <span class="badge bg-warning text-dark">Mantenimiento</span>
+                                                <% } else { %>
+                                                    <span class="badge bg-danger">Reservado</span>
+                                                <% } %>
+                                            </td>
+                                            <td class="text-end">
+                                                <button class="btn btn-sm btn-outline-dark me-1" 
+                                                        onclick="abrirModalEstado('<%= v.id_vehiculo %>', '<%= v.estado %>', '<%= v.matricula %>')"
+                                                        title="Cambiar Estado">
+                                                    <i class="bi bi-gear-fill"></i>
+                                                </button>
+
+                                                <button class="btn btn-sm btn-outline-primary me-1" 
+                                                        onclick="abrirModalEditar(<%= JSON.stringify(v) %>)"
+                                                        title="Editar Detalles">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+
+                                                <button class="btn btn-sm btn-outline-danger" 
+                                                        onclick="abrirModalBorrar('<%= v.id_vehiculo %>', '<%= v.matricula %>')"
+                                                        title="Eliminar">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                    <% } %>
                                 </tbody>
                             </table>
                         </div>
@@ -110,6 +144,7 @@
             </main>
         </div>
     </div>
+
     <div class="modal fade" id="modalNuevoVehiculo" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -122,7 +157,7 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">Matrícula <span class="text-danger">*</span></label>
-                                <input type="text" name="matricula" class="form-control" placeholder="1234-ABC" required>
+                                <input type="text" name="matricula" class="form-control" placeholder="9900-NOP" pattern="[0-9]{4}-[A-Z]{3}" oninput="this.value = this.value.toUpperCase()" maxlength="8" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">Marca <span class="text-danger">*</span></label>
@@ -132,7 +167,6 @@
                                 <label class="form-label fw-bold">Modelo <span class="text-danger">*</span></label>
                                 <input type="text" name="modelo" class="form-control" required>
                             </div>
-
                             <div class="col-md-3">
                                 <label class="form-label fw-bold">Año</label>
                                 <input type="number" name="anio" class="form-control" value="2023" min="2000" max="2030" required>
@@ -149,7 +183,6 @@
                                 <label class="form-label fw-bold">Color</label>
                                 <input type="text" name="color" class="form-control" placeholder="Blanco">
                             </div>
-
                             <div class="col-12">
                                 <label class="form-label fw-bold">Concesionario Asignado <span class="text-danger">*</span></label>
                                 <select name="id_concesionario" class="form-select" required>
@@ -159,15 +192,13 @@
                                             <option value="<%= c.id_concesionario %>"><%= c.nombre %> (<%= c.ciudad %>)</option>
                                         <% }) %>
                                     <% } else { %>
-                                        <option value="" disabled>No hay concesionarios disponibles</option>
+                                        <option value="" disabled>No hay concesionarios</option>
                                     <% } %>
                                 </select>
                             </div>
-                            
                             <div class="col-12">
                                 <label class="form-label fw-bold">Nombre de imagen</label>
                                 <input type="text" name="imagen" class="form-control" placeholder="ej: tesla_model3.jpg">
-                                <div class="form-text">Deja vacío para usar la imagen por defecto.</div>
                             </div>
                         </div>
                     </div>
@@ -179,6 +210,156 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modalEditarVehiculo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Vehículo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/admin/vehicles/edit" method="POST">
+                    <input type="hidden" name="id_vehiculo" id="edit_id">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Matrícula</label>
+                                <input type="text" name="matricula" id="edit_matricula" class="form-control" pattern="[0-9]{4}-[A-Z]{3}" oninput="this.value = this.value.toUpperCase()" maxlength="8" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Marca</label>
+                                <input type="text" name="marca" id="edit_marca" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Modelo</label>
+                                <input type="text" name="modelo" id="edit_modelo" class="form-control" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Año</label>
+                                <input type="number" name="anio" id="edit_anio" class="form-control" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Plazas</label>
+                                <input type="number" name="plazas" id="edit_plazas" class="form-control" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Autonomía</label>
+                                <input type="number" name="autonomia" id="edit_autonomia" class="form-control" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Color</label>
+                                <input type="text" name="color" id="edit_color" class="form-control">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Concesionario</label>
+                                <select name="id_concesionario" id="edit_concesionario" class="form-select" required>
+                                    <% if (concesionarios && concesionarios.length > 0) { %>
+                                        <% concesionarios.forEach(c => { %>
+                                            <option value="<%= c.id_concesionario %>"><%= c.nombre %> (<%= c.ciudad %>)</option>
+                                        <% }) %>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Imagen</label>
+                                <input type="text" name="imagen" id="edit_imagen" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEstadoVehiculo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="bi bi-gear-fill"></i> Gestionar Estado</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/admin/vehicles/status" method="POST">
+                    <div class="modal-body">
+                        <p>Estás cambiando el estado del vehículo con matrícula: <strong id="spanMatricula"></strong></p>
+                        <input type="hidden" name="id_vehiculo" id="inputEstadoId">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Selecciona el nuevo estado:</label>
+                            <select name="nuevo_estado" id="selectEstado" class="form-select">
+                                <option value="disponible">🟢 Disponible</option>
+                                <option value="mantenimiento">🟠 Mantenimiento (Taller)</option>
+                                <option value="reservado">🔴 Reservado (Manual)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-dark">Actualizar Estado</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalBorrarVehiculo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> Eliminar Vehículo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/admin/vehicles/delete" method="POST">
+                    <div class="modal-body">
+                        <p class="text-center">¿Estás seguro de que quieres eliminar el vehículo con matrícula <strong id="delete_matricula"></strong>?</p>
+                        <p class="text-center text-danger small">Esta acción no se puede deshacer.</p>
+                        <input type="hidden" name="id_vehiculo" id="delete_id">
+                    </div>
+                    <div class="modal-footer bg-light justify-content-center">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function abrirModalEstado(id, estadoActual, matricula) {
+            document.getElementById('inputEstadoId').value = id;
+            document.getElementById('selectEstado').value = estadoActual;
+            document.getElementById('spanMatricula').textContent = matricula;
+            const modal = new bootstrap.Modal(document.getElementById('modalEstadoVehiculo'));
+            modal.show();
+        }
+
+        function abrirModalEditar(vehiculo) {
+            // Rellenamos los campos del formulario con los datos del objeto JSON
+            document.getElementById('edit_id').value = vehiculo.id_vehiculo;
+            document.getElementById('edit_matricula').value = vehiculo.matricula;
+            document.getElementById('edit_marca').value = vehiculo.marca;
+            document.getElementById('edit_modelo').value = vehiculo.modelo;
+            document.getElementById('edit_anio').value = vehiculo.año_matriculacion;
+            document.getElementById('edit_plazas').value = vehiculo.numero_plazas;
+            document.getElementById('edit_autonomia').value = vehiculo.autonomia_km;
+            document.getElementById('edit_color').value = vehiculo.color;
+            document.getElementById('edit_concesionario').value = vehiculo.id_concesionario;
+            document.getElementById('edit_imagen').value = vehiculo.imagen;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalEditarVehiculo'));
+            modal.show();
+        }
+
+        function abrirModalBorrar(id, matricula) {
+            document.getElementById('delete_id').value = id;
+            document.getElementById('delete_matricula').textContent = matricula;
+            const modal = new bootstrap.Modal(document.getElementById('modalBorrarVehiculo'));
+            modal.show();
+        }
+    </script>
 </body>
 </html>

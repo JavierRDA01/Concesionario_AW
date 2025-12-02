@@ -100,4 +100,23 @@ router.get('/profile', verificarUsuario, (req, res) => {
         });
     });
 });
+
+router.post('/api/accessibility', verificarUsuario, (req, res) => {
+    const userId = req.session.user.id_usuario;
+    const nuevasPreferencias = req.body; // Esperamos { highContrast: true/false, fontSize: 'normal'/'large' }
+
+    userQueries.actualizarPreferencias(userId, nuevasPreferencias, (err) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Error en BD' });
+        }
+
+        // Actualizamos también la sesión para que persista al navegar
+        req.session.user.preferencias_accesibilidad = JSON.stringify(nuevasPreferencias);
+        
+        // Guardamos sesión explícitamente antes de responder
+        req.session.save(() => {
+            res.json({ success: true });
+        });
+    });
+});
 module.exports = router;

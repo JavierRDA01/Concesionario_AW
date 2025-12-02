@@ -10,42 +10,26 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link" href="/">Inicio</a>
                 </li>
 
-                <% if (user) { %>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    
                     <% if (user.rol === 'admin') { %>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/admin/dashboard">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/admin/vehicles">Gestión Flota</a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link" href="/admin/dealerships">Concesionarios</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/admin/users">Usuarios</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/admin/reservations">Reservas Globales</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/dashboard">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/vehicles">Gestión Flota</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/dealerships">Concesionarios</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/users">Usuarios</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/reservations">Reservas Globales</a></li>
                     
                     <% } else { %>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/vehicles">Vehículos Disponibles</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/reservations/new">Reservar Vehículo</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/my-reservations">Mis Reservas</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" href="/vehicles">Vehículos Disponibles</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/reservations/new">Reservar Vehículo</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/my-reservations">Mis Reservas</a></li>
                     <% } %>
+
                 <% } %>
             </ul>
             
@@ -56,16 +40,22 @@
                     </button>
                 </li>
 
-                <% if (user) { %>
+                <% if (typeof user !== 'undefined' && user) { %>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i> Hola, <%= user.nombre %> 
-                            <span class="badge <%= user.rol === 'admin' ? 'bg-danger' : 'bg-success' %> ms-1">
-                                <%= user.rol.toUpperCase() %>
-                            </span>
+                        <a class="nav-link dropdown-toggle active d-flex align-items-center" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-2"></i> 
+                            
+                            <span class="me-2"><%= user.nombre %></span>
+                            
+                            <% if (user.rol === 'admin') { %>
+                                <span class="badge bg-danger">ADMIN</span>
+                            <% } else { %>
+                                <span class="badge bg-secondary">EMPLEADO</span>
+                            <% } %>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
-                            <li><a class="dropdown-item" href="/profile">Mi Perfil</a></li> <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/profile">Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="/logout">Cerrar Sesión</a></li>
                         </ul>
                     </li>
@@ -82,19 +72,25 @@
     </div>
 </nav>
 
-<div class="modal fade" id="accessibilityModal" tabindex="-1" aria-labelledby="accessibilityModalLabel" aria-hidden="true">
+<div class="modal fade" id="accessibilityModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="accessibilityModalLabel">Opciones de Accesibilidad</h5>
+                <h5 class="modal-title">Opciones de Accesibilidad</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <p>Configura la visualización:</p>
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-dark" id="btn-contrast">Alto Contraste</button>
-                    <button class="btn btn-outline-primary" id="btn-font-inc">Aumentar Fuente (+)</button>
-                    <button class="btn btn-outline-primary" id="btn-font-dec">Disminuir Fuente (-)</button>
+                <p class="text-muted">Personaliza tu experiencia:</p>
+                <div class="d-grid gap-3">
+                    <button class="btn btn-outline-dark d-flex justify-content-between align-items-center" id="btn-contrast">
+                        <span><i class="bi bi-moon-stars-fill me-2"></i> Alto Contraste</span>
+                        <span id="status-contrast" class="badge bg-secondary">OFF</span>
+                    </button>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary" id="btn-font-small">A-</button>
+                        <button type="button" class="btn btn-outline-primary" id="btn-font-normal">A</button>
+                        <button type="button" class="btn btn-outline-primary" id="btn-font-large">A+</button>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -103,3 +99,60 @@
         </div>
     </div>
 </div>
+
+<script>
+    const userPrefsServer = <%- (typeof user !== 'undefined' && user && user.preferencias_accesibilidad) ? user.preferencias_accesibilidad : '{}' %>;
+    let currentConfig = {
+        highContrast: userPrefsServer.highContrast || false,
+        fontSize: userPrefsServer.fontSize || 'normal'
+    };
+
+    function applyAccessibility() {
+        const body = document.body;
+        const statusBadge = document.getElementById('status-contrast');
+        
+        if (currentConfig.highContrast) {
+            body.classList.add('high-contrast');
+            if(statusBadge) { statusBadge.textContent = 'ON'; statusBadge.className = 'badge bg-success'; }
+        } else {
+            body.classList.remove('high-contrast');
+            if(statusBadge) { statusBadge.textContent = 'OFF'; statusBadge.className = 'badge bg-secondary'; }
+        }
+
+        body.classList.remove('font-small', 'font-large');
+        if (currentConfig.fontSize === 'small') body.classList.add('font-small');
+        if (currentConfig.fontSize === 'large') body.classList.add('font-large');
+    }
+
+    function savePreferences() {
+        <% if (typeof user !== 'undefined' && user) { %>
+            fetch('/api/accessibility', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentConfig)
+            }).catch(console.error);
+        <% } %>
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        applyAccessibility();
+        const btnContrast = document.getElementById('btn-contrast');
+        if(btnContrast) {
+            btnContrast.addEventListener('click', () => {
+                currentConfig.highContrast = !currentConfig.highContrast;
+                applyAccessibility();
+                savePreferences();
+            });
+        }
+        ['small', 'normal', 'large'].forEach(size => {
+            const btn = document.getElementById(`btn-font-${size}`);
+            if(btn) {
+                btn.addEventListener('click', () => {
+                    currentConfig.fontSize = size;
+                    applyAccessibility();
+                    savePreferences();
+                });
+            }
+        });
+    });
+</script>

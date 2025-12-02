@@ -65,15 +65,15 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="fecha_inicio" class="form-label">Fecha inicio</label>
-                                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" 
+                                        <label for="fecha_inicio" class="form-label">Fecha y Hora de Inicio</label>
+                                        <input type="datetime-local" id="fecha_inicio" name="fecha_inicio" class="form-control" 
                                             value="<%= oldInput ? oldInput.fecha_inicio : '' %>" required
-                                            onchange="document.getElementById('fecha_fin').min = this.value">
+                                            onchange="actualizarMinimoFin()">
                                     </div>
                                     
                                     <div class="col-md-6">
-                                        <label for="fecha_fin" class="form-label">Fecha fin</label>
-                                        <input type="date" id="fecha_fin" name="fecha_fin" class="form-control"  
+                                        <label for="fecha_fin" class="form-label">Fecha y Hora de Fin</label>
+                                        <input type="datetime-local" id="fecha_fin" name="fecha_fin" class="form-control"  
                                             value="<%= oldInput ? oldInput.fecha_fin : '' %>" required>
                                     </div>
 
@@ -85,7 +85,18 @@
                                     
                                     <div class="col-12">
                                         <label for="incidencias_reportadas" class="form-label">Notas / Incidencias previas</label>
-                                        <textarea id="incidencias_reportadas" name="incidencias_reportadas" rows="3" class="form-control"><%= oldInput ? oldInput.incidencias_reportadas : '' %></textarea>
+                                        <textarea 
+                                            id="incidencias_reportadas" 
+                                            name="incidencias_reportadas" 
+                                            rows="3" 
+                                            class="form-control" 
+                                            maxlength="200"
+                                            placeholder="Describe brevemente cualquier desperfecto..."
+                                            oninput="document.getElementById('contador').textContent = this.value.length + '/200'"
+                                        ><%= oldInput ? oldInput.incidencias_reportadas : '' %></textarea>
+                                        <div class="d-flex justify-content-end">
+                                            <span id="contador" class="form-text text-muted">0/200</span>
+                                        </div>
                                     </div>
 
                                     <div class="col-12 text-center mt-4">
@@ -117,7 +128,7 @@
                         <li class="list-group-item"><strong>Hasta:</strong> <span id="modal_fin"></span></li>
                     </ul>
                     <div class="alert alert-warning mt-3 mb-0 small">
-                        <i class="bi bi-info-circle"></i> Al confirmar, el vehículo dejará de estar disponible para otros usuarios en estas fechas.
+                        <i class="bi bi-info-circle"></i> Al confirmar, el vehículo dejará de estar disponible en este horario.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -130,15 +141,36 @@
 
    <script src="/js/bootstrap.bundle.min.js"></script>
    <script>
-    // Scripts originales intactos
+    // Configuración de fecha/hora mínima (AHORA)
     const fechaInicioInput = document.getElementById('fecha_inicio');
+    const fechaFinInput = document.getElementById('fecha_fin');
+
+    // Función para obtener fecha actual en formato local ISO (YYYY-MM-DDTHH:MM)
+    const getNowISO = () => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 16);
+    };
+
     if(fechaInicioInput) {
-        fechaInicioInput.min = new Date().toISOString().split('T')[0];
+        fechaInicioInput.min = getNowISO();
+    }
+
+    // Cuando cambia el inicio, el fin no puede ser anterior
+    function actualizarMinimoFin() {
+        if(fechaInicioInput.value) {
+            fechaFinInput.min = fechaInicioInput.value;
+        }
     }
 
     function abrirModalConfirmacion() {
-        const inicioVal = document.getElementById('fecha_inicio').value || "Sin fecha";
-        const finVal = document.getElementById('fecha_fin').value || "Sin fecha";
+        // Formatear las fechas para que se vean bonitas en el modal (reemplazar la T por un espacio)
+        const inicioRaw = document.getElementById('fecha_inicio').value;
+        const finRaw = document.getElementById('fecha_fin').value;
+        
+        const inicioVal = inicioRaw ? inicioRaw.replace('T', ' a las ') : "Sin fecha";
+        const finVal = finRaw ? finRaw.replace('T', ' a las ') : "Sin fecha";
+        
         const vehiculoSelect = document.getElementById('vehiculo');
         let vehiculoTexto = "No seleccionado";
         if (vehiculoSelect.selectedIndex >= 0) {
