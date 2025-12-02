@@ -1,4 +1,3 @@
-
 const express = require('express');
 const path = require('path');
 const morgan = require('morgan');
@@ -7,8 +6,12 @@ const session = require('express-session');
 const mysqlSession = require("express-mysql-session");
 const MySQLStore = mysqlSession(session);
 
+// --- NUEVO: Importamos el script de inicialización ---
+const initDB = require('./data/dbInitializer'); 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 // Middleware
 app.use(morgan('dev'));
 app.use(express.json());
@@ -42,24 +45,21 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.get('/', (req ,res)=>{
-    res.render('index')
+    res.render('index') // Cambiado a index para mostrar la landing
 })
 
-
-
-// Routes
-// const mainRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
-const adminRoutes = require('./routes/admin')
+const adminRoutes = require('./routes/admin');
 const reservationsRoutes = require('./routes/reservations');
-const usersRoutes = require('./routes/users'); 
-
+// Asegúrate de tener este archivo si usas rutas de usuario
+// const usersRoutes = require('./routes/users'); 
 
 app.use('/', authRoutes);
 app.use('/reservations', reservationsRoutes);
 app.use('/admin', adminRoutes);
-app.use('/', usersRoutes);
+// app.use('/', usersRoutes); 
 
+initDB(); 
 
 // Server
 app.listen(PORT, () => {

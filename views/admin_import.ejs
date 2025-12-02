@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>Importar Datos - WibbleUCM</title>
+</head>
+<body class="bg-light">
+    
+    <%- include('./barraNavegadora.ejs') %>
+
+    <div class="container-fluid my-4">
+        <div class="row">
+            <div class="col-md-2 d-none d-md-block bg-white sidebar p-3 shadow-sm rounded me-3" style="min-height: 80vh;">
+                <h5 class="text-muted">Menú Admin</h5>
+                <hr>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a href="/admin/dashboard" class="nav-link text-dark">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/admin/vehicles" class="nav-link text-dark">
+                            <i class="bi bi-car-front"></i> Gestión de Flota
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/admin/dealerships" class="nav-link text-dark">
+                            <i class="bi bi-building"></i> Concesionarios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/admin/users" class="nav-link text-dark">
+                            <i class="bi bi-people"></i> Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/admin/reservations" class="nav-link text-dark">
+                            <i class="bi bi-calendar-check"></i> Reservas
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/admin/import" class="nav-link active text-danger fw-bold bg-light rounded">
+                            <i class="bi bi-cloud-upload"></i> Carga de Datos
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
+                <h2 class="mb-4 text-dark">Carga Masiva de Datos</h2>
+                
+                <% if (locals.error_msg) { %> 
+                    <div class="alert alert-warning border-start border-warning border-4 shadow-sm p-4 mb-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle-fill fs-2 me-3 text-warning"></i>
+                            <div>
+                                <h5 class="alert-heading fw-bold mb-1">Atención</h5>
+                                <p class="mb-0 fs-5"><%= error_msg %></p>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+                
+                <div class="card shadow-sm border-top border-danger border-4">
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-filetype-json text-danger" style="font-size: 4rem;"></i>
+                        </div>
+                        
+                        <h4 class="card-title fw-bold">Selecciona tu archivo JSON</h4>
+                        <p class="text-muted mb-4">
+                            El archivo debe contener la estructura de concesionarios y vehículos.<br>
+                            Se analizará el contenido antes de guardar nada en la base de datos.
+                        </p>
+                        
+                        <form action="/admin/import/preview" method="POST" enctype="multipart/form-data" class="d-inline-block col-12 col-md-8 col-lg-6">
+                            <div class="input-group input-group-lg mb-3">
+                                <input type="file" name="fichero_json" class="form-control" accept=".json" required>
+                                <button class="btn btn-danger fw-bold" type="submit">
+                                    <i class="bi bi-search"></i> Analizar
+                                </button>
+                            </div>
+                            <div class="form-text text-muted">
+                                Solo se admiten archivos con extensión <code>.json</code>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-light py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted"><i class="bi bi-info-circle"></i> Esta acción permite añadir nuevos datos o actualizar los existentes.</small>
+                            <% if(user.rol === 'admin') { %>
+                                <a href="/admin/dashboard" class="btn btn-sm btn-outline-secondary">Volver al Dashboard</a>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

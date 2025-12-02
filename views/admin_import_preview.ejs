@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Confirmar Importación</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-light">
+    <%- include('./barraNavegadora.ejs') %>
+    <div class="container my-5">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">Resumen del Análisis</h4>
+            </div>
+            <div class="card-body">
+                
+                <h5 class="text-success"><i class="bi bi-plus-circle"></i> Nuevos Registros</h5>
+                <p>Se han detectado <strong><%= reporte.concesionariosNuevos %></strong> concesionarios nuevos y <strong><%= reporte.vehiculosNuevos.length %></strong> vehículos nuevos.</p>
+                <% if(reporte.vehiculosNuevos.length > 0) { %>
+                    <ul class="list-group mb-4 small">
+                        <% reporte.vehiculosNuevos.slice(0,5).forEach(v => { %>
+                            <li class="list-group-item"><%= v.marca %> <%= v.modelo %> (<%= v.matricula %>)</li>
+                        <% }) %>
+                        <% if(reporte.vehiculosNuevos.length > 5) { %> <li class="list-group-item text-muted">... y otros <%= reporte.vehiculosNuevos.length - 5 %> más.</li> <% } %>
+                    </ul>
+                <% } %>
+
+                <hr>
+
+                <h5 class="text-warning"><i class="bi bi-exclamation-triangle"></i> Conflictos (Ya existen)</h5>
+                <p>Se han encontrado <strong><%= reporte.vehiculosConflictivos.length %></strong> vehículos que ya existen en la base de datos (misma matrícula).</p>
+                
+                <form action="/admin/import/confirm" method="POST">
+                    <% if(reporte.vehiculosConflictivos.length > 0) { %>
+                        <div class="alert alert-warning">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="actualizar" value="yes" id="checkUpdate">
+                                <label class="form-check-label fw-bold" for="checkUpdate">
+                                    Sobreescribir los datos de estos vehículos con los del JSON.
+                                </label>
+                                <div class="form-text text-dark">Si no marcas esta casilla, los vehículos existentes se ignorarán y no se modificarán.</div>
+                            </div>
+                        </div>
+                    <% } %>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/admin/import" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-success">Confirmar e Importar</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>
