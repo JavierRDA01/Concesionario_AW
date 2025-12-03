@@ -18,36 +18,16 @@
                 <h5 class="text-muted">Menú Admin</h5>
                 <hr>
                 <ul class="nav flex-column">
-                    <li class="nav-item mb-2">
-                        <a href="/admin/dashboard" class="nav-link text-dark">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a href="/admin/vehicles" class="nav-link text-dark">
-                            <i class="bi bi-car-front"></i> Gestión de Flota
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a href="/admin/dealerships" class="nav-link text-dark">
-                            <i class="bi bi-building"></i> Concesionarios
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a href="/admin/users" class="nav-link text-dark">
-                            <i class="bi bi-people"></i> Usuarios
-                        </a>
-                    </li>
+                    <li class="nav-item mb-2"><a href="/admin/dashboard" class="nav-link text-dark"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                    <li class="nav-item mb-2"><a href="/admin/vehicles" class="nav-link text-dark"><i class="bi bi-car-front"></i> Gestión de Flota</a></li>
+                    <li class="nav-item mb-2"><a href="/admin/dealerships" class="nav-link text-dark"><i class="bi bi-building"></i> Concesionarios</a></li>
+                    <li class="nav-item mb-2"><a href="/admin/users" class="nav-link text-dark"><i class="bi bi-people"></i> Usuarios</a></li>
                     <li class="nav-item mb-2">
                         <a href="/admin/reservations" class="nav-link active text-danger fw-bold bg-light rounded">
                             <i class="bi bi-calendar-check"></i> Reservas
                         </a>
                     </li>
-                    <li class="nav-item mb-2">
-                        <a href="/admin/import" class="nav-link text-dark">
-                            <i class="bi bi-cloud-upload"></i> Carga de Datos
-                        </a>
-                    </li>
+                    <li class="nav-item mb-2"><a href="/admin/import" class="nav-link text-dark"><i class="bi bi-cloud-upload"></i> Carga de Datos</a></li>
                 </ul>
             </div>
 
@@ -56,6 +36,8 @@
                     <h2 class="text-dark">Listado de Reservas</h2>
                 </div>
                 
+                <div id="alertaDinamica"></div>
+
                 <div class="card shadow-sm">
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -63,9 +45,12 @@
                                 <thead class="bg-dark text-white">
                                     <tr>
                                         <th style="width: 5%;">ID</th>
-                                        <th style="width: 12%;">Usuario</th> <th style="width: 18%;">Vehículo</th> <th style="width: 20%;">Fechas</th>
+                                        <th style="width: 12%;">Usuario</th> 
+                                        <th style="width: 18%;">Vehículo</th> 
+                                        <th style="width: 20%;">Fechas</th>
                                         <th style="width: 10%;">Estado</th>
-                                        <th style="width: 25%;">Incidencias</th> <th style="width: 10%;">Acciones</th>
+                                        <th style="width: 25%;">Incidencias</th> 
+                                        <th style="width: 10%;">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -73,7 +58,7 @@
                                         <tr><td colspan="7" class="text-center py-3">No hay reservas registradas.</td></tr>
                                     <% } else { %>
                                         <% reservas.forEach(r => { %>
-                                        <tr>
+                                        <tr id="fila-reserva-<%= r.id_reserva %>">
                                             <td class="fw-bold">#<%= r.id_reserva %></td>
                                             
                                             <td class="text-truncate" title="<%= r.nombre_usuario %>">
@@ -91,7 +76,7 @@
                                                 </div>
                                             </td>
                                             
-                                            <td>
+                                            <td id="celda-estado-<%= r.id_reserva %>">
                                                 <% if(r.estado === 'activa') { %>
                                                     <span class="badge bg-success">Activa</span>
                                                 <% } else if(r.estado === 'finalizada') { %>
@@ -112,11 +97,10 @@
                                                 <% } %>
                                             </td>
                                             
-                                            <td>
+                                            <td id="celda-acciones-<%= r.id_reserva %>">
                                                 <% if(r.estado === 'activa') { %>
-                                                    <form action="/admin/reservations/cancel" method="POST" onsubmit="return confirm('¿Seguro que quieres cancelar esta reserva?');">
-                                                        <input type="hidden" name="id_reserva" value="<%= r.id_reserva %>">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Cancelar Reserva">
+                                                    <form class="form-cancelar" data-id="<%= r.id_reserva %>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100 btn-cancelar" title="Cancelar Reserva">
                                                             <i class="bi bi-x-circle"></i> Cancelar
                                                         </button>
                                                     </form>
@@ -133,6 +117,64 @@
             </main>
         </div>
     </div>
+    
+    <script src="/js/jquery.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            
+            // Delegación de eventos para manejar los formularios de cancelar
+            $(document).on('submit', '.form-cancelar', function(e) {
+                e.preventDefault();
+
+                if (!confirm('¿Seguro que quieres cancelar esta reserva?')) {
+                    return;
+                }
+
+                const $form = $(this);
+                const idReserva = $form.data('id');
+                const $btn = $form.find('button');
+
+                // Deshabilitar botón durante el proceso
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+                // Llamada AJAX
+                $.ajax({
+                    type: "POST",
+                    url: "/admin/reservations/cancel",
+                    contentType: "application/json",
+                    data: JSON.stringify({ id_reserva: idReserva }),
+                    
+                    success: function(data) {
+                        if (data.success) {
+                            // 1. Actualizar visualmente el estado a "Cancelada"
+                            $(`#celda-estado-${idReserva}`).html('<span class="badge bg-danger">Cancelada</span>');
+                            
+                            // 2. Quitar el botón de cancelar (ya no se puede cancelar lo cancelado)
+                            $(`#celda-acciones-${idReserva}`).empty();
+
+                            // 3. Mostrar alerta de éxito
+                            $('#alertaDinamica').html(`
+                                <div class="alert alert-success alert-dismissible fade show shadow-sm border-start border-success border-4" role="alert">
+                                    <i class="bi bi-check-circle-fill me-2"></i> Reserva #${idReserva} cancelada correctamente.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            `);
+                        } else {
+                            alert("Error: " + data.message);
+                            // Restaurar botón
+                            $btn.prop('disabled', false).html('<i class="bi bi-x-circle"></i> Cancelar');
+                        }
+                    },
+                    
+                    error: function() {
+                        alert("Error de conexión con el servidor.");
+                        $btn.prop('disabled', false).html('<i class="bi bi-x-circle"></i> Cancelar');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

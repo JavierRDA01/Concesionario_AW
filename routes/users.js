@@ -119,4 +119,5 @@ router.post('/api/accessibility', verificarUsuario, (req, res) => {
         });
     });
 });
+
 module.exports = router;

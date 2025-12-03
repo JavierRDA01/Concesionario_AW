@@ -142,6 +142,7 @@ const eliminarVehiculo = (id, callback) => {
         });
     });
 };
+
 module.exports = {
     obtenerVehiculosDisponibles,
     obtenerVehiculoPorId,

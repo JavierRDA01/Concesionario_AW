@@ -50,14 +50,6 @@
                     <label for="registro_telefono" class="form-label">Teléfono</label>
                     <input class="form-control" id="registro_telefono" name="telefono" placeholder="Ej: 123456789" type="tel" value="<%= oldInput && oldInput.telefono ? oldInput.telefono : '' %>">
                 </div>
-                
-                <div class="mb-3">
-                    <label for="registro_rol" class="form-label">Rol</label>
-                    <select id="registro_rol" name="rol" class="form-select">
-                        <option value="empleado" <%= (oldInput && oldInput.rol === 'empleado') ? 'selected' : '' %>>Empleado</option>
-                        <option value="admin" <%= (oldInput && oldInput.rol === 'admin') ? 'selected' : '' %>>Administrador</option>
-                    </select>                
-                </div>
 
                 <div class="mb-3">
                     <label for="registro_concesionario" class="form-label">Concesionario</label>

@@ -124,12 +124,13 @@ adminRouter.get('/vehicles', (req, res) => {
     });
 });
 
-// Ruta crear vehículo (con imagen)
-adminRouter.post('/vehicles/new', uploadImg.single('imagen'), (req, res) => {
+adminRouter.post('/vehicles/new', verificarAdmin, uploadImg.single('imagen'), (req, res) => {
     let matricula = req.body.matricula ? req.body.matricula.toUpperCase().trim() : '';
+    
+    // Validación básica de matrícula
     if (!/^\d{4}-[A-Z]{3}$/.test(matricula)) {
-        req.session.error_msg = 'Error: Formato de matrícula incorrecto (9999-XXX).';
-        return req.session.save(() => res.redirect('/admin/vehicles'));
+        // En lugar de renderizar o redirigir, devolvemos JSON con error
+        return res.status(400).json({ success: false, message: 'Formato de matrícula incorrecto (Ej: 1234-ABC).' });
     }
 
     const imagenNombre = req.file ? req.file.filename : 'default_car.jpg';
@@ -145,14 +146,17 @@ adminRouter.post('/vehicles/new', uploadImg.single('imagen'), (req, res) => {
         imagen: imagenNombre
     };
     
-    vehiclesQueries.crearVehiculo(newCar, (err) => {
+    vehiclesQueries.crearVehiculo(newCar, (err, result) => {
         if (err) {
-            if (err.code === 'ER_DUP_ENTRY') req.session.error_msg = `Error: La matrícula ${matricula} ya existe.`;
-            else req.session.error_msg = 'Error interno al crear vehículo.';
-            return req.session.save(() => res.redirect('/admin/vehicles'));
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({ success: false, message: `La matrícula ${matricula} ya existe.` });
+            }
+            return res.status(500).json({ success: false, message: 'Error interno al crear vehículo.' });
         }
-        req.session.success_msg = 'Vehículo creado correctamente.';
-        req.session.save(() => res.redirect('/admin/vehicles'));
+
+        // Devolvemos éxito y el ID del nuevo vehículo para que el frontend pueda añadir la fila
+        newCar.id_vehiculo = result.insertId;
+        res.json({ success: true, vehiculo: newCar });
     });
 });
 
@@ -195,43 +199,58 @@ adminRouter.get('/dealerships', verificarAdmin, (req, res) => {
     });
 });
 
-// POST: Crear nuevo concesionario
 adminRouter.post('/dealerships/new', verificarAdmin, (req, res) => {
     const { nombre, ciudad, direccion, telefono } = req.body;
     
-    // Validación básica
+    // 1. Validación básica
     if (!nombre || !ciudad || !direccion) {
-        return res.redirect('/admin/dealerships?error=Faltan datos obligatorios');
+        // En lugar de redirigir con ?error=..., devolvemos un JSON con status 400
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Faltan datos obligatorios (Nombre, Ciudad o Dirección).' 
+        });
     }
 
-    dealershipsQueries.crearConcesionario({ nombre, ciudad, direccion, telefono }, (err) => {
+    // 2. Llamada a base de datos
+    dealershipsQueries.crearConcesionario({ nombre, ciudad, direccion, telefono }, (err, result) => {
         if (err) {
-            return res.redirect('/admin/dealerships?error=Error al crear el concesionario');
+            console.error(err);
+            // Error de servidor, devolvemos JSON con status 500
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Error al crear el concesionario en la base de datos.' 
+            });
         }
-        res.redirect('/admin/dealerships');
+        
+        // 3. ÉXITO: Devolvemos JSON con success: true y los datos del nuevo objeto
+        // Necesitamos devolver el objeto para que el AJAX pueda pintar la fila nueva
+        res.json({
+            success: true,
+            concesionario: {
+                id_concesionario: result.insertId, // ID generado por MySQL
+                nombre: nombre,
+                ciudad: ciudad,
+                direccion: direccion,
+                telefono_contacto: telefono || '-'
+            }
+        });
     });
 });
-
+// 3. POST: Cambiar estado
 adminRouter.post('/vehicles/status', verificarAdmin, (req, res) => {
     const { id_vehiculo, nuevo_estado } = req.body;
-
+    
     vehiclesQueries.actualizarEstadoVehiculo(id_vehiculo, nuevo_estado, (err) => {
         if (err) {
-            // Usamos la sesión para el mensaje de error (como hicimos antes)
-            req.session.error_msg = 'Error al actualizar el estado del vehículo.';
-            return req.session.save(() => res.redirect('/admin/vehicles'));
+            return res.status(500).json({ success: false, message: 'Error al actualizar el estado.' });
         }
-
-        req.session.success_msg = 'Estado actualizado correctamente.';
-        req.session.save(() => res.redirect('/admin/vehicles'));
+        res.json({ success: true, nuevo_estado });
     });
 });
+// 2. POST: Editar vehículo
 adminRouter.post('/vehicles/edit', verificarAdmin, uploadImg.single('imagen'), (req, res) => {
     const id = req.body.id_vehiculo;
-    
-    // Lógica para la imagen: 
-    // 1. Si sube nueva (req.file), usamos esa.
-    // 2. Si no sube nada, mantenemos la que tenía (req.body.current_imagen).
+    // Si suben imagen nueva la usamos, si no, mantenemos la antigua (hidden input)
     const imagenFinal = req.file ? req.file.filename : req.body.current_imagen;
 
     const updatedCar = {
@@ -243,82 +262,72 @@ adminRouter.post('/vehicles/edit', verificarAdmin, uploadImg.single('imagen'), (
         autonomia: req.body.autonomia,
         color: req.body.color,
         id_concesionario: req.body.id_concesionario,
-        imagen: imagenFinal 
+        imagen: imagenFinal
     };
 
     vehiclesQueries.actualizarVehiculo(id, updatedCar, (err) => {
         if (err) {
-            req.session.error_msg = 'Error al editar el vehículo.';
-            return req.session.save(() => res.redirect('/admin/vehicles'));
+            return res.status(500).json({ success: false, message: 'Error al actualizar el vehículo.' });
         }
-        req.session.success_msg = 'Vehículo actualizado correctamente.';
-        req.session.save(() => res.redirect('/admin/vehicles'));
+        
+        // Devolvemos los datos actualizados
+        updatedCar.id_vehiculo = id;
+        res.json({ success: true, vehiculo: updatedCar });
     });
 });
 
-// ELIMINAR VEHÍCULO
+//  POST: Eliminar vehículo
 adminRouter.post('/vehicles/delete', verificarAdmin, (req, res) => {
     const id = req.body.id_vehiculo;
 
-    // 1. PRIMER FILTRO: Comprobar reservas ACTIVAS o FUTURAS
-    // Esta función mira la tabla Reservas, independientemente del estado del coche (mantenimiento, disponible...)
+    // Primero verificamos si tiene reservas activas (función que ya tenías en reservations.js)
     reservationsQueries.verificarReservasActivasVehiculo(id, (err, tieneReservasActivas) => {
         if (err) {
-            req.session.error_msg = 'Error técnico verificando las reservas.';
-            return req.session.save(() => res.redirect('/admin/vehicles'));
+            return res.status(500).json({ success: false, message: 'Error técnico verificando reservas.' });
         }
 
-        // Si hay reservas pendientes, BLOQUEAMOS aunque el coche esté en "Mantenimiento"
         if (tieneReservasActivas) {
-            req.session.error_msg = 'ACCIÓN DENEGADA: Este vehículo tiene reservas activas o futuras. Debes cancelar esas reservas antes de poder eliminarlo del sistema.';
-            return req.session.save(() => res.redirect('/admin/vehicles'));
+            return res.status(400).json({ success: false, message: 'DENEGADO: El vehículo tiene reservas activas o futuras.' });
         }
 
-        // 2. SEGUNDO FILTRO: Intentar borrar en Base de Datos
         vehiclesQueries.eliminarVehiculo(id, (err) => {
             if (err) {
-                // Si entra aquí, es porque MySQL ha bloqueado el borrado por "Clave Foránea"
-                // Significa que tiene historial de reservas PASADAS.
-                console.error("Error BD al borrar:", err);
-                req.session.error_msg = 'No se puede eliminar: El vehículo tiene historial de reservas antiguas. Por seguridad, los datos históricos no se borran. Cámbialo a estado "Mantenimiento" para ocultarlo.';
-                return req.session.save(() => res.redirect('/admin/vehicles'));
+                // Error probable por claves foráneas (historial antiguo)
+                return res.status(400).json({ success: false, message: 'No se puede eliminar porque tiene historial. Pásalo a Mantenimiento.' });
             }
-            
-            // Si llegamos aquí, es que no tenía NINGUNA reserva (ni activa ni pasada)
-            req.session.success_msg = 'Vehículo eliminado del sistema permanentemente.';
-            req.session.save(() => res.redirect('/admin/vehicles'));
+            res.json({ success: true });
         });
     });
 });
-
 adminRouter.post('/reservations/cancel', verificarAdmin, (req, res) => {
     const { id_reserva } = req.body;
 
     reservationsQueries.cancelarReserva(id_reserva, (err) => {
         if (err) {
             console.error("Error cancelando reserva:", err);
-            // Podrías usar req.session.error_msg si quieres mostrar feedback
-            return res.redirect('/admin/reservations');
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Error al cancelar la reserva en la base de datos.' 
+            });
         }
-        // Éxito
-        res.redirect('/admin/reservations');
+        
+        res.json({ success: true, message: 'Reserva cancelada correctamente.' });
     });
 });
-
 adminRouter.post('/users/role', verificarAdmin, (req, res) => {
     const { id_usuario, nuevo_rol } = req.body;
 
-    // Evitar que un admin se quite permisos a sí mismo por error
     if (parseInt(id_usuario) === req.session.user.id_usuario) {
-        return res.redirect('/admin/users');
+        return res.status(400).json({ success: false, message: "No puedes modificar tu propio rol." });
     }
 
     userQueries.cambiarRolUsuario(id_usuario, nuevo_rol, (err) => {
         if (err) {
-            // Manejo de error básico
-            return res.status(500).send("Error al cambiar el rol");
+            console.error(err);
+            return res.status(500).json({ success: false, message: "Error al actualizar en base de datos." });
         }
-        res.redirect('/admin/users');
+        // ÉXITO: Devolvemos JSON en lugar de redirect
+        res.json({ success: true, nuevo_rol: nuevo_rol, id_usuario: id_usuario });
     });
 });
 module.exports = adminRouter;

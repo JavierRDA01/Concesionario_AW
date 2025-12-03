@@ -14,41 +14,16 @@
 
     <div class="container-fluid my-4">
         <div class="row">
-            
             <div class="col-md-2 d-none d-md-block bg-white sidebar p-3 shadow-sm rounded me-3" style="min-height: 80vh;">
                 <h5 class="text-muted">Menú Admin</h5>
                 <hr>
                 <ul class="nav flex-column">
-                    <li class="nav-item mb-2">
-                        <a href="/admin/dashboard" class="nav-link text-dark">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a href="/admin/vehicles" class="nav-link text-dark">
-                            <i class="bi bi-car-front"></i> Gestión de Flota
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a href="/admin/dealerships" class="nav-link text-dark">
-                            <i class="bi bi-building"></i> Concesionarios
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a href="/admin/users" class="nav-link active text-danger fw-bold bg-light rounded">
-                            <i class="bi bi-people"></i> Usuarios
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a href="/admin/reservations" class="nav-link text-dark">
-                            <i class="bi bi-calendar-check"></i> Reservas
-                        </a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a href="/admin/import" class="nav-link text-dark">
-                            <i class="bi bi-cloud-upload"></i> Carga de Datos
-                        </a>
-                    </li>
+                    <li class="nav-item mb-2"><a href="/admin/dashboard" class="nav-link text-dark"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                    <li class="nav-item mb-2"><a href="/admin/vehicles" class="nav-link text-dark"><i class="bi bi-car-front"></i> Gestión de Flota</a></li>
+                    <li class="nav-item mb-2"><a href="/admin/dealerships" class="nav-link text-dark"><i class="bi bi-building"></i> Concesionarios</a></li>
+                    <li class="nav-item mb-2"><a href="/admin/users" class="nav-link active text-danger fw-bold bg-light rounded"><i class="bi bi-people"></i> Usuarios</a></li>
+                    <li class="nav-item mb-2"><a href="/admin/reservations" class="nav-link text-dark"><i class="bi bi-calendar-check"></i> Reservas</a></li>
+                    <li class="nav-item mb-2"><a href="/admin/import" class="nav-link text-dark"><i class="bi bi-cloud-upload"></i> Carga de Datos</a></li>
                 </ul>
             </div>
 
@@ -68,7 +43,8 @@
                                         <th>Rol</th>
                                         <th>Concesionario Asignado</th>
                                         <th>Teléfono</th>
-                                        <th>Acciones</th> </tr>
+                                        <th>Acciones</th> 
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     <% if(users.length === 0) { %>
@@ -77,13 +53,13 @@
                                         <% users.forEach(u => { %>
                                             <tr>
                                                 <td>#<%= u.id_usuario %></td>
-
+                                                
                                                 <td>
-                                                    <strong><%= u.nombre %></strong>
-                                                    <br><small class="text-muted"><%= u.correo %></small>
+                                                    <strong><%= u.nombre %></strong><br>
+                                                    <small class="text-muted"><%= u.correo %></small>
                                                 </td>
 
-                                                <td>
+                                                <td id="rol-badge-<%= u.id_usuario %>">
                                                     <% if(u.rol === 'admin') { %>
                                                         <span class="badge bg-danger">Administrador</span>
                                                     <% } else { %>
@@ -104,27 +80,24 @@
 
                                                 <td><%= u.telefono || '-' %></td>
 
-                                                <td>
+                                                <td id="accion-btn-<%= u.id_usuario %>">
                                                     <% if (u.id_usuario !== user.id_usuario) { %> 
-                                                        <form action="/admin/users/role" method="POST">
-                                                            <input type="hidden" name="id_usuario" value="<%= u.id_usuario %>">
+                                                        
+                                                        <button class="btn btn-sm <%= u.rol === 'empleado' ? 'btn-outline-danger' : 'btn-outline-secondary' %>"
+                                                                onclick="cambiarRolAjax('<%= u.id_usuario %>', '<%= u.rol === 'empleado' ? 'admin' : 'empleado' %>')">
                                                             
                                                             <% if(u.rol === 'empleado') { %>
-                                                                <input type="hidden" name="nuevo_rol" value="admin">
-                                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hacer Administrador">
-                                                                    <i class="bi bi-shield-lock-fill"></i> Ascender
-                                                                </button>
+                                                                <i class="bi bi-shield-lock-fill"></i> Ascender
                                                             <% } else { %>
-                                                                <input type="hidden" name="nuevo_rol" value="empleado">
-                                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Hacer Empleado">
-                                                                    <i class="bi bi-person-badge"></i> Degradar
-                                                                </button>
+                                                                <i class="bi bi-person-badge"></i> Degradar
                                                             <% } %>
-                                                        </form>
+                                                        </button>
+
                                                     <% } else { %>
                                                         <span class="text-muted small">Tú</span>
                                                     <% } %>
                                                 </td>
+
                                             </tr>
                                         <% }) %>
                                     <% } %>
@@ -137,6 +110,68 @@
         </div>
     </div>
 
+    <script src="/js/jquery.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function cambiarRolAjax(idUsuario, nuevoRol) {
+            
+            // Construimos el objeto JSON
+            const datos = { 
+                id_usuario: idUsuario, 
+                nuevo_rol: nuevoRol 
+            };
+
+            // Llamada AJAX al estilo de la presentación
+            $.ajax({
+                type: "POST",
+                url: "/admin/users/role",
+                contentType: "application/json",
+                data: JSON.stringify(datos),
+                
+                success: function(data) {
+                    if (data.success) {
+                        // 1. Actualizar visualmente el Badge de Rol
+                        const $celdaBadge = $("#rol-badge-" + idUsuario);
+                        
+                        if (nuevoRol === 'admin') {
+                            $celdaBadge.html('<span class="badge bg-danger">Administrador</span>');
+                        } else {
+                            $celdaBadge.html('<span class="badge bg-primary">Empleado</span>');
+                        }
+
+                        // 2. Actualizar visualmente el Botón de Acción
+                        const $celdaBtn = $("#accion-btn-" + idUsuario);
+                        
+                        if (nuevoRol === 'admin') {
+                            // Si ahora es admin, el botón debe ser para "Degradar" a empleado
+                            $celdaBtn.html(`
+                                <button class="btn btn-sm btn-outline-secondary" 
+                                        onclick="cambiarRolAjax('${idUsuario}', 'empleado')">
+                                    <i class="bi bi-person-badge"></i> Degradar
+                                </button>
+                            `);
+                        } else {
+                            // Si ahora es empleado, el botón debe ser para "Ascender" a admin
+                            $celdaBtn.html(`
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="cambiarRolAjax('${idUsuario}', 'admin')">
+                                    <i class="bi bi-shield-lock-fill"></i> Ascender
+                                </button>
+                            `);
+                        }
+
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                },
+                
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error:", errorThrown);
+                    alert("Hubo un error de conexión con el servidor.");
+                }
+            });
+        }
+    </script>
 </body>
 </html>

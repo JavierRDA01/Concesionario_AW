@@ -60,25 +60,7 @@
                     </button>
                 </div>
 
-                <% if (typeof error_msg !== 'undefined' && error_msg) { %> 
-                    <div class="alert alert-warning alert-dismissible fade show border-start border-warning border-4 shadow-sm" role="alert">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
-                            <div><strong>Atención:</strong> <%= error_msg %></div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <% } %>
-
-                <% if (typeof success_msg !== 'undefined' && success_msg) { %> 
-                    <div class="alert alert-success alert-dismissible fade show border-start border-success border-4 shadow-sm" role="alert">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
-                            <div><%= success_msg %></div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <% } %>
+                <div id="alertaDinamica"></div>
 
                 <div class="card shadow-sm border-top">
                     <div class="card-body p-0">
@@ -94,18 +76,15 @@
                                         <th class="text-end">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tbodyVehiculos">
                                     <% if(vehiculos.length === 0) { %>
-                                        <tr><td colspan="6" class="text-center py-3">No hay vehículos registrados.</td></tr>
+                                        <tr id="filaSinDatos"><td colspan="6" class="text-center py-3">No hay vehículos registrados.</td></tr>
                                     <% } else { %>
                                         <% vehiculos.forEach(v => { %>
-                                        <tr>
+                                        <tr id="fila-<%= v.id_vehiculo %>">
                                             <td>
                                                 <% if(v.imagen && v.imagen !== 'default_car.jpg') { %>
-                                                    <img src="/img/<%= v.imagen %>" 
-                                                        alt="Foto" 
-                                                        class="rounded border" 
-                                                        style="width: 50px; height: 35px; object-fit: cover;">
+                                                    <img src="/img/<%= v.imagen %>" class="rounded border" style="width: 50px; height: 35px; object-fit: cover;">
                                                 <% } else { %>
                                                     <div class="bg-white border rounded d-flex align-items-center justify-content-center text-secondary" style="width: 50px; height: 35px;">
                                                         <i class="bi bi-car-front-fill"></i>
@@ -118,7 +97,7 @@
                                             </td>
                                             <td><span class="badge bg-light text-dark border"><%= v.matricula %></span></td>
                                             <td><%= v.nombre_concesionario %></td>
-                                            <td>
+                                            <td id="celda-estado-<%= v.id_vehiculo %>">
                                                 <% if(v.estado === 'disponible') { %>
                                                     <span class="badge bg-success">Disponible</span>
                                                 <% } else if(v.estado === 'mantenimiento') { %>
@@ -133,9 +112,9 @@
                                                         title="Cambiar Estado">
                                                     <i class="bi bi-gear-fill"></i>
                                                 </button>
-
+                                                
                                                 <button class="btn btn-sm btn-outline-primary me-1" 
-                                                        onclick="abrirModalEditar(<%= JSON.stringify(v) %>)"
+                                                        onclick='abrirModalEditar(<%- JSON.stringify(v) %>)'
                                                         title="Editar Detalles">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
@@ -165,8 +144,9 @@
                     <h5 class="modal-title"><i class="bi bi-car-front-fill"></i> Alta de Vehículo</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="/admin/vehicles/new" method="POST" enctype="multipart/form-data">
+                <form id="formNuevoVehiculo" enctype="multipart/form-data">
                     <div class="modal-body">
+                        <div id="errorNuevo" class="alert alert-danger d-none"></div>
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">Matrícula <span class="text-danger">*</span></label>
@@ -204,21 +184,18 @@
                                         <% concesionarios.forEach(c => { %>
                                             <option value="<%= c.id_concesionario %>"><%= c.nombre %> (<%= c.ciudad %>)</option>
                                         <% }) %>
-                                    <% } else { %>
-                                        <option value="" disabled>No hay concesionarios</option>
                                     <% } %>
                                 </select>
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-bold">Imagen del vehículo</label>
                                 <input type="file" name="imagen" class="form-control" accept="image/*">
-                                <div class="form-text">Formatos: JPG, PNG, WEBP. Máx 2MB.</div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-danger">Guardar Vehículo</button>
+                        <button type="button" id="btnGuardarNuevo" class="btn btn-danger">Guardar Vehículo</button>
                     </div>
                 </form>
             </div>
@@ -232,11 +209,12 @@
                     <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Vehículo</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="/admin/vehicles/edit" method="POST" enctype="multipart/form-data">
+                <form id="formEditarVehiculo" enctype="multipart/form-data">
                     <input type="hidden" name="id_vehiculo" id="edit_id">
                     <input type="hidden" name="current_imagen" id="edit_current_imagen">
 
                     <div class="modal-body">
+                        <div id="errorEdit" class="alert alert-danger d-none"></div>
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">Matrícula</label>
@@ -276,7 +254,6 @@
                                     <% } %>
                                 </select>
                             </div>
-                            
                             <div class="col-12">
                                 <label class="form-label fw-bold">Imagen</label>
                                 <div class="d-flex align-items-center mb-2 p-2 border rounded bg-light">
@@ -284,13 +261,12 @@
                                     <div class="small text-muted" id="edit_filename_text">Ninguna imagen seleccionada</div>
                                 </div>
                                 <input type="file" name="imagen" id="edit_imagen_input" class="form-control" accept="image/*">
-                                <div class="form-text">Sube un archivo para cambiar la foto actual.</div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <button type="button" id="btnGuardarEdicion" class="btn btn-primary">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
@@ -304,7 +280,7 @@
                     <h5 class="modal-title"><i class="bi bi-gear-fill"></i> Gestionar Estado</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="/admin/vehicles/status" method="POST">
+                <form id="formEstado">
                     <div class="modal-body">
                         <p>Estás cambiando el estado del vehículo con matrícula: <strong id="spanMatricula"></strong></p>
                         <input type="hidden" name="id_vehiculo" id="inputEstadoId">
@@ -319,7 +295,7 @@
                     </div>
                     <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-dark">Actualizar Estado</button>
+                        <button type="button" id="btnGuardarEstado" class="btn btn-dark">Actualizar Estado</button>
                     </div>
                 </form>
             </div>
@@ -333,69 +309,236 @@
                     <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> Eliminar Vehículo</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="/admin/vehicles/delete" method="POST">
+                <form id="formBorrar">
                     <div class="modal-body">
+                        <div id="errorBorrar" class="alert alert-danger d-none"></div>
                         <p class="text-center">¿Estás seguro de que quieres eliminar el vehículo con matrícula <strong id="delete_matricula"></strong>?</p>
                         <p class="text-center text-danger small">Esta acción no se puede deshacer.</p>
                         <input type="hidden" name="id_vehiculo" id="delete_id">
                     </div>
                     <div class="modal-footer bg-light justify-content-center">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                        <button type="button" id="btnConfirmarBorrar" class="btn btn-danger">Sí, Eliminar</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
+    <script src="/js/jquery.min.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // =====================
+        // FUNCIONES AUXILIARES
+        // =====================
+        
+        function mostrarAlerta(mensaje, tipo) {
+            const html = `
+                <div class="alert alert-${tipo} alert-dismissible fade show shadow-sm border-start border-${tipo} border-4" role="alert">
+                    <i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-triangle'}-fill me-2"></i> ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+            $("#alertaDinamica").html(html);
+        }
+
+        function generarHTMLFila(v, nombreConcesionario) {
+            let badgeEstado = '';
+            if(v.estado === 'disponible') badgeEstado = '<span class="badge bg-success">Disponible</span>';
+            else if(v.estado === 'mantenimiento') badgeEstado = '<span class="badge bg-warning text-dark">Mantenimiento</span>';
+            else badgeEstado = '<span class="badge bg-danger">Reservado</span>';
+
+            let imgTag = (v.imagen && v.imagen !== 'default_car.jpg') 
+                ? `<img src="/img/${v.imagen}" class="rounded border" style="width: 50px; height: 35px; object-fit: cover;">`
+                : `<div class="bg-white border rounded d-flex align-items-center justify-content-center text-secondary" style="width: 50px; height: 35px;"><i class="bi bi-car-front-fill"></i></div>`;
+
+            // Escapar comillas para el JSON del onclick
+            const vString = JSON.stringify(v).replace(/"/g, '&quot;');
+
+            return `
+                <td>${imgTag}</td>
+                <td><strong>${v.marca}</strong> ${v.modelo}<br><small class="text-muted">Año: ${v.año_matriculacion || v.anio}</small></td>
+                <td><span class="badge bg-light text-dark border">${v.matricula}</span></td>
+                <td>${nombreConcesionario}</td>
+                <td id="celda-estado-${v.id_vehiculo}">${badgeEstado}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-dark me-1" onclick="abrirModalEstado('${v.id_vehiculo}', '${v.estado}', '${v.matricula}')"><i class="bi bi-gear-fill"></i></button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="abrirModalEditar(${vString})"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="abrirModalBorrar('${v.id_vehiculo}', '${v.matricula}')"><i class="bi bi-trash"></i></button>
+                </td>
+            `;
+        }
+
+        // =====================
+        // GESTIÓN DE MODALES
+        // =====================
+
         function abrirModalEstado(id, estadoActual, matricula) {
-            document.getElementById('inputEstadoId').value = id;
-            document.getElementById('selectEstado').value = estadoActual;
-            document.getElementById('spanMatricula').textContent = matricula;
+            $("#inputEstadoId").val(id);
+            $("#selectEstado").val(estadoActual);
+            $("#spanMatricula").text(matricula);
             const modal = new bootstrap.Modal(document.getElementById('modalEstadoVehiculo'));
             modal.show();
         }
 
         function abrirModalEditar(vehiculo) {
-            // Rellenamos los campos del formulario
-            document.getElementById('edit_id').value = vehiculo.id_vehiculo;
-            document.getElementById('edit_matricula').value = vehiculo.matricula;
-            document.getElementById('edit_marca').value = vehiculo.marca;
-            document.getElementById('edit_modelo').value = vehiculo.modelo;
-            document.getElementById('edit_anio').value = vehiculo.año_matriculacion;
-            document.getElementById('edit_plazas').value = vehiculo.numero_plazas;
-            document.getElementById('edit_autonomia').value = vehiculo.autonomia_km;
-            document.getElementById('edit_color').value = vehiculo.color;
-            document.getElementById('edit_concesionario').value = vehiculo.id_concesionario;
-            
-            // Imagen: guardamos el nombre actual en un input hidden
-            document.getElementById('edit_current_imagen').value = vehiculo.imagen;
-            
-            // Lógica de previsualización
-            const previewImg = document.getElementById('edit_preview');
-            const filenameText = document.getElementById('edit_filename_text');
-            
+            $("#edit_id").val(vehiculo.id_vehiculo);
+            $("#edit_matricula").val(vehiculo.matricula);
+            $("#edit_marca").val(vehiculo.marca);
+            $("#edit_modelo").val(vehiculo.modelo);
+            $("#edit_anio").val(vehiculo.año_matriculacion || vehiculo.anio);
+            $("#edit_plazas").val(vehiculo.numero_plazas);
+            $("#edit_autonomia").val(vehiculo.autonomia_km);
+            $("#edit_color").val(vehiculo.color);
+            $("#edit_concesionario").val(vehiculo.id_concesionario);
+            $("#edit_current_imagen").val(vehiculo.imagen);
+
+            // Previsualización imagen
             if(vehiculo.imagen && vehiculo.imagen !== 'default_car.jpg') {
-                previewImg.src = '/images/' + vehiculo.imagen;
-                filenameText.textContent = 'Imagen actual: ' + vehiculo.imagen;
+                $("#edit_preview").attr("src", "/img/" + vehiculo.imagen);
+                $("#edit_filename_text").text("Imagen actual");
             } else {
-                previewImg.src = 'https://placehold.co/600x400?text=Sin+Imagen';
-                filenameText.textContent = 'Usando imagen por defecto';
+                $("#edit_preview").attr("src", "https://placehold.co/600x400?text=Sin+Imagen");
+                $("#edit_filename_text").text("Usando imagen por defecto");
             }
 
+            $("#errorEdit").addClass("d-none");
             const modal = new bootstrap.Modal(document.getElementById('modalEditarVehiculo'));
             modal.show();
         }
 
         function abrirModalBorrar(id, matricula) {
-            document.getElementById('delete_id').value = id;
-            document.getElementById('delete_matricula').textContent = matricula;
+            $("#delete_id").val(id);
+            $("#delete_matricula").text(matricula);
+            $("#errorBorrar").addClass("d-none");
             const modal = new bootstrap.Modal(document.getElementById('modalBorrarVehiculo'));
             modal.show();
         }
+
+        // =====================
+        // PETICIONES AJAX (jQuery)
+        // =====================
+
+        $(document).ready(function() {
+
+            // 1. CREAR VEHÍCULO (Multipart Form)
+            $("#btnGuardarNuevo").click(function() {
+                // Usamos FormData para el envío de archivos
+                let formData = new FormData(document.getElementById("formNuevoVehiculo"));
+                
+                // Obtener texto del concesionario para la tabla
+                let nombreConc = $("#formNuevoVehiculo select[name='id_concesionario'] option:selected").text();
+
+                $.ajax({
+                    url: '/admin/vehicles/new',
+                    type: 'POST',
+                    data: formData,
+                    processData: false, // Importante para FormData
+                    contentType: false, // Importante para FormData
+                    success: function(data) {
+                        if(data.success) {
+                            // Cerrar modal
+                            bootstrap.Modal.getInstance(document.getElementById('modalNuevoVehiculo')).hide();
+                            $("#formNuevoVehiculo")[0].reset();
+                            $("#filaSinDatos").remove();
+
+                            // Añadir fila
+                            let nuevaFila = `<tr id="fila-${data.vehiculo.id_vehiculo}">${generarHTMLFila(data.vehiculo, nombreConc)}</tr>`;
+                            $("#tbodyVehiculos").prepend(nuevaFila);
+                            
+                            mostrarAlerta("Vehículo creado correctamente.", "success");
+                        }
+                    },
+                    error: function(jqXHR) {
+                        let msg = jqXHR.responseJSON ? jqXHR.responseJSON.message : "Error al crear vehículo";
+                        $("#errorNuevo").text(msg).removeClass("d-none");
+                    }
+                });
+            });
+
+            // 2. EDITAR VEHÍCULO (Multipart Form)
+            $("#btnGuardarEdicion").click(function() {
+                let formData = new FormData(document.getElementById("formEditarVehiculo"));
+                let nombreConc = $("#formEditarVehiculo select[name='id_concesionario'] option:selected").text();
+
+                $.ajax({
+                    url: '/admin/vehicles/edit',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(data) {
+                        if(data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('modalEditarVehiculo')).hide();
+                            
+                            // Actualizar fila
+                            $("#fila-" + data.vehiculo.id_vehiculo).html(generarHTMLFila(data.vehiculo, nombreConc));
+                            
+                            mostrarAlerta("Vehículo actualizado correctamente.", "success");
+                        }
+                    },
+                    error: function(jqXHR) {
+                        let msg = jqXHR.responseJSON ? jqXHR.responseJSON.message : "Error al editar vehículo";
+                        $("#errorEdit").text(msg).removeClass("d-none");
+                    }
+                });
+            });
+
+            // 3. CAMBIAR ESTADO (JSON)
+            $("#btnGuardarEstado").click(function() {
+                // Serializar formulario a objeto JSON
+                let datos = {
+                    id_vehiculo: $("#inputEstadoId").val(),
+                    nuevo_estado: $("#selectEstado").val()
+                };
+
+                $.ajax({
+                    url: '/admin/vehicles/status',
+                    type: 'POST',
+                    contentType: 'application/json', // Como dice la presentación (Slide 80)
+                    data: JSON.stringify(datos),
+                    success: function(data) {
+                        if(data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('modalEstadoVehiculo')).hide();
+                            
+                            let celda = $("#celda-estado-" + datos.id_vehiculo);
+                            if(datos.nuevo_estado === 'disponible') celda.html('<span class="badge bg-success">Disponible</span>');
+                            else if(datos.nuevo_estado === 'mantenimiento') celda.html('<span class="badge bg-warning text-dark">Mantenimiento</span>');
+                            else celda.html('<span class="badge bg-danger">Reservado</span>');
+
+                            mostrarAlerta("Estado actualizado.", "success");
+                        }
+                    },
+                    error: function() {
+                        alert("Error al cambiar el estado.");
+                    }
+                });
+            });
+
+            // 4. BORRAR VEHÍCULO (JSON)
+            $("#btnConfirmarBorrar").click(function() {
+                let id = $("#delete_id").val();
+
+                $.ajax({
+                    url: '/admin/vehicles/delete',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id_vehiculo: id }),
+                    success: function(data) {
+                        if(data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('modalBorrarVehiculo')).hide();
+                            $("#fila-" + id).fadeOut(function() { $(this).remove(); });
+                            mostrarAlerta("Vehículo eliminado.", "success");
+                        }
+                    },
+                    error: function(jqXHR) {
+                        let msg = jqXHR.responseJSON ? jqXHR.responseJSON.message : "Error al eliminar";
+                        $("#errorBorrar").text(msg).removeClass("d-none");
+                    }
+                });
+            });
+
+        });
     </script>
 </body>
 </html>
