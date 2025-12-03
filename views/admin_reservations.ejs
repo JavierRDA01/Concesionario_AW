@@ -59,69 +59,67 @@
                 <div class="card shadow-sm">
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0 align-middle" style="table-layout: fixed; width: 100%;">
+                            <table class="table table-hover table-striped mb-0 align-middle" style="table-layout: fixed; min-width: 1100px;">
                                 <thead class="bg-dark text-white">
                                     <tr>
                                         <th style="width: 5%;">ID</th>
-                                        <th style="width: 15%;">Usuario</th>
-                                        <th style="width: 20%;">Vehículo</th>
-                                        <th style="width: 20%;">Fechas y Horas</th>
+                                        <th style="width: 12%;">Usuario</th> <th style="width: 18%;">Vehículo</th> <th style="width: 20%;">Fechas</th>
                                         <th style="width: 10%;">Estado</th>
-                                        <th style="width: 30%;">Incidencias</th>
+                                        <th style="width: 25%;">Incidencias</th> <th style="width: 10%;">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <% if(reservas.length === 0) { %>
-                                        <tr><td colspan="6" class="text-center py-3">No hay reservas registradas.</td></tr>
+                                        <tr><td colspan="7" class="text-center py-3">No hay reservas registradas.</td></tr>
                                     <% } else { %>
                                         <% reservas.forEach(r => { %>
                                         <tr>
-                                            <td class="text-truncate"><strong>#<%= r.id_reserva %></strong></td>
+                                            <td class="fw-bold">#<%= r.id_reserva %></td>
+                                            
                                             <td class="text-truncate" title="<%= r.nombre_usuario %>">
-                                                <span class="fw-bold text-dark"><%= r.nombre_usuario %></span>
+                                                <%= r.nombre_usuario %>
                                             </td>
+                                            
                                             <td class="text-truncate" title="<%= r.vehiculo %>">
-                                                <span class="text-muted"><%= r.vehiculo %></span>
+                                                <small class="text-muted"><%= r.vehiculo %></small>
                                             </td>
+                                            
                                             <td>
                                                 <div class="d-flex flex-column small">
-                                                    <div class="mb-1 text-truncate">
-                                                        <span class="badge bg-light text-secondary border me-1">INICIO</span>
-                                                        <strong>
-                                                            <%= new Date(r.fecha_inicio).toLocaleString('es-ES', {
-                                                                day: '2-digit', month: '2-digit', year: 'numeric', 
-                                                                hour: '2-digit', minute: '2-digit'
-                                                            }) %>
-                                                        </strong>
-                                                    </div>
-                                                    <div class="text-truncate">
-                                                        <span class="badge bg-light text-secondary border me-1" style="width: 48px;">FIN</span>
-                                                        <strong>
-                                                            <%= new Date(r.fecha_fin).toLocaleString('es-ES', {
-                                                                day: '2-digit', month: '2-digit', year: 'numeric', 
-                                                                hour: '2-digit', minute: '2-digit'
-                                                            }) %>
-                                                        </strong>
-                                                    </div>
+                                                    <span class="text-nowrap"><i class="bi bi-calendar-check me-1"></i><%= new Date(r.fecha_inicio).toLocaleDateString() %></span>
+                                                    <span class="text-nowrap"><i class="bi bi-arrow-right-short me-1"></i><%= new Date(r.fecha_fin).toLocaleDateString() %></span>
                                                 </div>
                                             </td>
+                                            
                                             <td>
                                                 <% if(r.estado === 'activa') { %>
                                                     <span class="badge bg-success">Activa</span>
                                                 <% } else if(r.estado === 'finalizada') { %>
                                                     <span class="badge bg-secondary">Finalizada</span>
                                                 <% } else { %>
-                                                    <span class="badge bg-danger"><%= r.estado %></span>
+                                                    <span class="badge bg-danger">Cancelada</span>
                                                 <% } %>
                                             </td>
-                                            <td class="text-break">
+                                            
+                                            <td class="text-wrap">
                                                 <% if(r.incidencias_reportadas && r.incidencias_reportadas.trim() !== '') { %>
-                                                    <div class="alert alert-warning p-2 mb-0 small d-flex align-items-start">
-                                                        <i class="bi bi-exclamation-triangle-fill me-2 mt-1 flex-shrink-0"></i>
-                                                        <span><%= r.incidencias_reportadas %></span>
+                                                    <div class="alert alert-warning p-2 mb-0 small lh-sm">
+                                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                                        <%= r.incidencias_reportadas %>
                                                     </div>
                                                 <% } else { %>
-                                                    <span class="text-muted small font-italic">Sin incidencias</span>
+                                                    <span class="text-muted small opacity-50">-</span>
+                                                <% } %>
+                                            </td>
+                                            
+                                            <td>
+                                                <% if(r.estado === 'activa') { %>
+                                                    <form action="/admin/reservations/cancel" method="POST" onsubmit="return confirm('¿Seguro que quieres cancelar esta reserva?');">
+                                                        <input type="hidden" name="id_reserva" value="<%= r.id_reserva %>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Cancelar Reserva">
+                                                            <i class="bi bi-x-circle"></i> Cancelar
+                                                        </button>
+                                                    </form>
                                                 <% } %>
                                             </td>
                                         </tr>

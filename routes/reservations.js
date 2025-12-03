@@ -56,16 +56,14 @@ router.get('/new', (req, res) => {
 
 router.post('/new', (req, res) => {
     const oldInput = req.body;
-
-    const userId = req.session.user ? req.session.user.id_usuario : null;
-
-    // Si no hay usuario logueado, podrías redirigir al login o mostrar error
-    if (!userId) {
-        return res.redirect('/login'); // O manejar el error apropiadamente
+    
+    // Verificamos usuario
+    if (!req.session.user) {
+        return res.redirect('/login');
     }
 
     const data = {
-        id_usuario: userId, 
+        id_usuario: req.session.user.id_usuario, 
         id_vehiculo: req.body.id_vehiculo,
         fecha_inicio: req.body.fecha_inicio,
         fecha_fin: req.body.fecha_fin,
@@ -78,17 +76,28 @@ router.post('/new', (req, res) => {
         if (err) {
             console.error('Error creando reserva:', err);
             
-            vehiclesQueries.obtenerVehiculosDisponibles((errV, vehiculos) => {
-                return res.status(500).render('reservations_new', { 
+            // Si falla, necesitamos volver a cargar los vehículos para pintar el formulario
+            // IMPORTANTE: Respetamos la lógica de base asignada
+            const idConcesionario = req.session.user.id_concesionario;
+            
+            const renderError = (vehiculos) => {
+                res.status(400).render('reservations_new', { 
                     vehiculos: vehiculos || [], 
-                    errors: [{ msg: 'Error al guardar la reserva' }], 
+                    errors: [{ msg: err.message }], 
                     oldInput,
                     success_msg: null
                 });
-            });
+            };
+
+            if (req.session.user.rol === 'admin' || !idConcesionario) {
+                vehiclesQueries.obtenerVehiculosDisponibles((errV, vehiculos) => renderError(vehiculos));
+            } else {
+                vehiclesQueries.obtenerVehiculosDisponiblesPorConcesionario(idConcesionario, (errV, vehiculos) => renderError(vehiculos));
+            }
             return;
         }
 
+        // Éxito
         return res.redirect('/my-reservations');
     });
 });

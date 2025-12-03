@@ -45,7 +45,7 @@ const checkDBEmpty = (req, res, next) => {
     dealershipsQueries.obtenerConcesionarios((err, result) => {
         if (err) return next();
         if (result.length === 0) {
-            req.session.error_msg = "⚠️ ATENCIÓN: La base de datos está vacía. Es obligatorio realizar una carga inicial de datos (JSON).";
+            req.session.error_msg = "ATENCIÓN: La base de datos está vacía. Es obligatorio realizar una carga inicial de datos (JSON).";
             return req.session.save(() => res.redirect('/admin/import'));
         }
         next();
@@ -260,15 +260,48 @@ adminRouter.post('/vehicles/edit', verificarAdmin, uploadImg.single('imagen'), (
 adminRouter.post('/vehicles/delete', verificarAdmin, (req, res) => {
     const id = req.body.id_vehiculo;
 
-    vehiclesQueries.eliminarVehiculo(id, (err) => {
+    // 1. PRIMER FILTRO: Comprobar reservas ACTIVAS o FUTURAS
+    // Esta función mira la tabla Reservas, independientemente del estado del coche (mantenimiento, disponible...)
+    reservationsQueries.verificarReservasActivasVehiculo(id, (err, tieneReservasActivas) => {
         if (err) {
-            req.session.error_msg = 'No se puede eliminar el vehículo porque tiene historial de reservas. Prueba a cambiar su estado a "Mantenimiento" o "Baja".';
+            req.session.error_msg = 'Error técnico verificando las reservas.';
             return req.session.save(() => res.redirect('/admin/vehicles'));
         }
-        req.session.success_msg = 'Vehículo eliminado del sistema.';
-        req.session.save(() => res.redirect('/admin/vehicles'));
+
+        // Si hay reservas pendientes, BLOQUEAMOS aunque el coche esté en "Mantenimiento"
+        if (tieneReservasActivas) {
+            req.session.error_msg = 'ACCIÓN DENEGADA: Este vehículo tiene reservas activas o futuras. Debes cancelar esas reservas antes de poder eliminarlo del sistema.';
+            return req.session.save(() => res.redirect('/admin/vehicles'));
+        }
+
+        // 2. SEGUNDO FILTRO: Intentar borrar en Base de Datos
+        vehiclesQueries.eliminarVehiculo(id, (err) => {
+            if (err) {
+                // Si entra aquí, es porque MySQL ha bloqueado el borrado por "Clave Foránea"
+                // Significa que tiene historial de reservas PASADAS.
+                console.error("Error BD al borrar:", err);
+                req.session.error_msg = 'No se puede eliminar: El vehículo tiene historial de reservas antiguas. Por seguridad, los datos históricos no se borran. Cámbialo a estado "Mantenimiento" para ocultarlo.';
+                return req.session.save(() => res.redirect('/admin/vehicles'));
+            }
+            
+            // Si llegamos aquí, es que no tenía NINGUNA reserva (ni activa ni pasada)
+            req.session.success_msg = 'Vehículo eliminado del sistema permanentemente.';
+            req.session.save(() => res.redirect('/admin/vehicles'));
+        });
     });
 });
 
+adminRouter.post('/reservations/cancel', verificarAdmin, (req, res) => {
+    const { id_reserva } = req.body;
 
+    reservationsQueries.cancelarReserva(id_reserva, (err) => {
+        if (err) {
+            console.error("Error cancelando reserva:", err);
+            // Podrías usar req.session.error_msg si quieres mostrar feedback
+            return res.redirect('/admin/reservations');
+        }
+        // Éxito
+        res.redirect('/admin/reservations');
+    });
+});
 module.exports = adminRouter;

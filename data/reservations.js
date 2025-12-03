@@ -1,81 +1,52 @@
 const pool = require('./connection');
 
-const crearReserva = (data, callback) => {
-    const sql = `INSERT INTO reservas (id_usuario, id_vehiculo, fecha_inicio, fecha_fin, estado, kilometros_recorridos, incidencias_reportadas) VALUES (?,?,?,?,?,?,?)`;
-
-    const values = [
-        data.id_usuario,
-        data.id_vehiculo,
-        data.fecha_inicio,
-        data.fecha_fin,
-        data.estado,
-        data.kilometros_recorridos,
-        data.incidencias_reportadas
-    ];
-
-    pool.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Error insertando reserva:', err.message);
-            return callback(err);
-        }
-        callback(null);
-    });
-};
-
-const getDashboardStats = (callback) => {
-    const sqlActivas = "SELECT COUNT(*) as count FROM reservas WHERE estado = 'activa'";
-    const sqlIncidencias = "SELECT COUNT(*) as count FROM reservas WHERE incidencias_reportadas IS NOT NULL AND incidencias_reportadas != ''";
+const crearReserva = (reservaData, callback) => {
+    const { id_usuario, id_vehiculo, fecha_inicio, fecha_fin } = reservaData;
     
-    pool.query(sqlActivas, (err, resActivas) => {
-        if (err) {
-            console.error('Error obteniendo activas:', err.message);
-            return callback(err);
-        }
+    // 1. Validar disponibilidad (Doble check de seguridad)
+    const checkSql = `
+        SELECT * FROM Reservas 
+        WHERE id_vehiculo = ? 
+        AND estado = 'activa'
+        AND (
+            (fecha_inicio BETWEEN ? AND ?) OR 
+            (fecha_fin BETWEEN ? AND ?) OR
+            (? BETWEEN fecha_inicio AND fecha_fin)
+        )
+    `;
+
+    pool.query(checkSql, [id_vehiculo, fecha_inicio, fecha_fin, fecha_inicio, fecha_fin, fecha_inicio], (err, results) => {
+        if (err) return callback(err);
         
-        pool.query(sqlIncidencias, (err2, resIncidencias) => {
-            if (err2) {
-                console.error('Error obteniendo incidencias:', err2.message);
-                return callback(err2);
-            }
-            
-            callback(null, {
-                activas: resActivas[0].count,
-                incidencias: resIncidencias[0].count
-            });
+        if (results.length > 0) {
+            return callback(new Error("El vehículo no está disponible en esas fechas."));
+        }
+
+        // 2. Insertar reserva
+        const insertSql = `
+            INSERT INTO Reservas (id_usuario, id_vehiculo, fecha_inicio, fecha_fin, estado) 
+            VALUES (?, ?, ?, ?, 'activa')
+        `;
+        
+        pool.query(insertSql, [id_usuario, id_vehiculo, fecha_inicio, fecha_fin], (err, result) => {
+            if (err) return callback(err);
+            callback(null, result);
         });
     });
 };
 
-const getUltimasReservas = (callback) => {
+const obtenerReservasDeUsuarioDetalladas = (idUsuario, callback) => {
     const sql = `
-        SELECT r.id_reserva, u.nombre_completo as usuario, CONCAT(v.marca, ' ', v.modelo) as vehiculo, r.estado 
-        FROM reservas r 
-        JOIN usuarios u ON r.id_usuario = u.id_usuario 
-        JOIN vehiculos v ON r.id_vehiculo = v.id_vehiculo 
-        ORDER BY r.fecha_inicio DESC 
-        LIMIT 5
+        SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.estado, r.incidencias_reportadas,
+               v.marca, v.modelo, v.matricula, v.imagen,
+               c.nombre as nombre_concesionario, c.ciudad
+        FROM Reservas r
+        JOIN Vehiculos v ON r.id_vehiculo = v.id_vehiculo
+        JOIN Concesionarios c ON v.id_concesionario = c.id_concesionario
+        WHERE r.id_usuario = ?
+        ORDER BY r.fecha_inicio DESC
     `;
-    pool.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error obteniendo últimas reservas:', err.message);
-            return callback(err);
-        }
-        callback(null, results);
-    });
-};
-
-// Funciones auxiliares que podrías necesitar en otros lados
-const getAllReservations = (callback) => {
-    const sql = `SELECT * FROM reservas`;
-    pool.query(sql, (err, results) => {
-        if (err) return callback(err);
-        callback(null, results);
-    });
-};
-
-const getReservationsByUser = (id_usuario, callback) => {
-    const sql = `SELECT * FROM reservas WHERE id_usuario = ?`;
-    pool.query(sql, [id_usuario], (err, results) => {
+    pool.query(sql, [idUsuario], (err, results) => {
         if (err) return callback(err);
         callback(null, results);
     });
@@ -83,13 +54,9 @@ const getReservationsByUser = (id_usuario, callback) => {
 
 const obtenerTodasLasReservasDetalladas = (callback) => {
     const sql = `
-        SELECT r.id_reserva, 
-               u.nombre as nombre_usuario, 
-               CONCAT(v.marca, ' ', v.modelo, ' (', v.matricula, ')') as vehiculo,
-               r.fecha_inicio, 
-               r.fecha_fin, 
-               r.estado,
-               r.incidencias_reportadas
+        SELECT r.*, 
+               u.nombre as nombre_usuario, u.correo,
+               CONCAT(v.marca, ' ', v.modelo, ' (', v.matricula, ')') as vehiculo
         FROM Reservas r
         JOIN Usuarios u ON r.id_usuario = u.id_usuario
         JOIN Vehiculos v ON r.id_vehiculo = v.id_vehiculo
@@ -101,34 +68,36 @@ const obtenerTodasLasReservasDetalladas = (callback) => {
     });
 };
 
-const obtenerReservasDeUsuarioDetalladas = (id_usuario, callback) => {
+// --- FUNCIÓN QUE TE FALTABA ---
+const verificarReservasActivasVehiculo = (id_vehiculo, callback) => {
     const sql = `
-        SELECT r.id_reserva, 
-               CONCAT(v.marca, ' ', v.modelo) as vehiculo,
-               v.matricula,
-               v.imagen,
-               r.fecha_inicio, 
-               r.fecha_fin, 
-               r.estado,
-               r.kilometros_recorridos,
-               r.incidencias_reportadas
-        FROM Reservas r
-        JOIN Vehiculos v ON r.id_vehiculo = v.id_vehiculo
-        WHERE r.id_usuario = ?
-        ORDER BY r.fecha_inicio DESC
+        SELECT COUNT(*) as total 
+        FROM Reservas 
+        WHERE id_vehiculo = ? 
+        AND estado = 'activa' 
+        AND fecha_fin >= NOW()
     `;
-    pool.query(sql, [id_usuario], (err, results) => {
+    
+    pool.query(sql, [id_vehiculo], (err, results) => {
         if (err) return callback(err);
-        callback(null, results);
+        // Devuelve true si hay reservas futuras/activas
+        callback(null, results[0].total > 0);
     });
 };
 
+const cancelarReserva = (idReserva, callback) => {
+    const sql = "UPDATE Reservas SET estado = 'cancelada' WHERE id_reserva = ? AND estado = 'activa'";
+    pool.query(sql, [idReserva], (err, result) => {
+        if (err) return callback(err);
+        callback(null, result);
+    });
+};
+
+// ¡IMPORTANTE! Exportar todas las funciones aquí
 module.exports = {
     crearReserva,
-    getDashboardStats,
-    getUltimasReservas,
-    getAllReservations,
-    getReservationsByUser,
+    obtenerReservasDeUsuarioDetalladas,
     obtenerTodasLasReservasDetalladas,
-    obtenerReservasDeUsuarioDetalladas 
+    verificarReservasActivasVehiculo, // <--- Asegúrate de que esta línea esté aquí
+    cancelarReserva
 };

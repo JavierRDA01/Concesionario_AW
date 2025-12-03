@@ -77,3 +77,86 @@ body.font-large {
 body.font-small {
     font-size: 0.85rem !important;
 }
+body.high-contrast .table {
+    color: #ffffff !important;
+    border-color: #ffffff !important; /* Bordes blancos para mejor separación */
+}
+
+/* Asegurar que el fondo de las celdas sea negro para máximo contraste */
+body.high-contrast .table td,
+body.high-contrast .table th {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Corregir textos "muted" (grisáceos) que no se ven en negro */
+body.high-contrast .text-muted {
+    color: #dddddd !important; /* Gris muy claro, casi blanco */
+}
+
+/* Si usas tablas 'striped' (a rayas), asegurar que la fila alterna también sea legible */
+body.high-contrast .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: #222222 !important; /* Gris muy oscuro en vez de negro puro */
+    color: #ffffff !important;
+}
+
+/* Bordes blancos en los badges para que resalten */
+body.high-contrast .badge {
+    border: 1px solid #ffffff;
+    color: #ffffff !important; /* Texto blanco asegurado */
+}
+
+/* Títulos de las tarjetas y contenedores */
+body.high-contrast .card,
+body.high-contrast .modal-content {
+    background-color: #000000;
+    border: 2px solid #ffffff; /* Borde blanco grueso */
+    color: #ffffff;
+}
+
+/* Fondo negro y borde blanco para la cajita del menú */
+body.high-contrast .dropdown-menu {
+    background-color: #000000 !important;
+    border: 2px solid #ffffff !important;
+}
+
+/* Texto de las opciones en blanco */
+body.high-contrast .dropdown-item {
+    color: #ffffff !important;
+}
+
+/* Al pasar el ratón por encima: fondo gris oscuro y texto amarillo */
+body.high-contrast .dropdown-item:hover,
+body.high-contrast .dropdown-item:focus {
+    background-color: #333333 !important;
+    color: #ffff00 !important; /* Amarillo para resaltar */
+}
+
+/* Línea divisoria dentro del menú */
+body.high-contrast .dropdown-divider {
+    border-top: 1px solid #ffffff !important;
+    opacity: 1; /* Para asegurar que se vea */
+}
+
+body.high-contrast .list-group-item {
+    background-color: #000000 !important;
+    border: 1px solid #ffffff !important;
+    color: #ffffff !important;
+}
+
+/* Corregir el texto de la fecha (que suele ser gris/muted) */
+body.high-contrast .list-group-item .text-muted {
+    color: #dddddd !important; /* Gris muy claro */
+}
+
+/* Si pasas el ratón por encima de un elemento de la lista */
+body.high-contrast .list-group-item:hover {
+    background-color: #333333 !important; /* Gris oscuro para indicar selección */
+    color: #ffff00 !important; /* Texto amarillo */
+}
+
+/* Enlaces dentro de la lista (como "Ver todo el historial") */
+body.high-contrast a {
+    color: #ffff00 !important; /* Amarillo brillante */
+    text-decoration: underline;
+}

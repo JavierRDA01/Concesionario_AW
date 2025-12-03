@@ -121,13 +121,25 @@ const actualizarVehiculo = (id, data, callback) => {
 };
 
 const eliminarVehiculo = (id, callback) => {
-    const sql = "DELETE FROM Vehiculos WHERE id_vehiculo = ?";
-    pool.query(sql, [id], (err, result) => {
+    // 1. Primero borramos las reservas asociadas a este vehículo (historial)
+    const sqlDeleteReservas = "DELETE FROM Reservas WHERE id_vehiculo = ?";
+    
+    pool.query(sqlDeleteReservas, [id], (err, result) => {
         if (err) {
-            console.error("Error eliminando vehículo:", err);
+            console.error("Error borrando historial de reservas:", err);
             return callback(err);
         }
-        callback(null, result);
+
+        // 2. Ahora que no tiene hijos, borramos el vehículo
+        const sqlDeleteVehiculo = "DELETE FROM Vehiculos WHERE id_vehiculo = ?";
+        
+        pool.query(sqlDeleteVehiculo, [id], (err, resultVehiculo) => {
+            if (err) {
+                console.error("Error eliminando vehículo:", err);
+                return callback(err);
+            }
+            callback(null, resultVehiculo);
+        });
     });
 };
 module.exports = {

@@ -52,12 +52,12 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const reservationsRoutes = require('./routes/reservations');
 // Asegúrate de tener este archivo si usas rutas de usuario
-// const usersRoutes = require('./routes/users'); 
+const usersRoutes = require('./routes/users'); 
 
 app.use('/', authRoutes);
 app.use('/reservations', reservationsRoutes);
 app.use('/admin', adminRoutes);
-// app.use('/', usersRoutes); 
+app.use('/', usersRoutes); 
 
 initDB(); 
 
