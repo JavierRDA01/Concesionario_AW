@@ -59,6 +59,18 @@ app.use('/reservations', reservationsRoutes);
 app.use('/admin', adminRoutes);
 app.use('/', usersRoutes); 
 
+app.use((req, res, next) => {
+    res.status(404).render('404');
+});
+
+// 2. Manejo de Error 500 (Error interno)
+app.use((err, req, res, next) => {
+    console.error("ERROR DETECTADO:", err.stack); 
+    
+    res.status(500).render('500', { 
+        error: process.env.NODE_ENV === 'development' ? err.message : 'Error interno del sistema' 
+    });
+});
 initDB(); 
 
 // Server
