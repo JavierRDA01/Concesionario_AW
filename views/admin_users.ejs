@@ -61,44 +61,70 @@
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover table-striped mb-0 align-middle">
-                                <thead class="bg-dark text-white">
+                               <thead class="bg-dark text-white">
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre / Correo</th>
                                         <th>Rol</th>
                                         <th>Concesionario Asignado</th>
                                         <th>Teléfono</th>
-                                        </tr>
+                                        <th>Acciones</th> </tr>
                                 </thead>
                                 <tbody>
                                     <% if(users.length === 0) { %>
-                                        <tr><td colspan="5" class="text-center py-3">No hay usuarios registrados.</td></tr>
+                                        <tr><td colspan="6" class="text-center py-3">No hay usuarios registrados.</td></tr>
                                     <% } else { %>
                                         <% users.forEach(u => { %>
-                                        <tr>
-                                            <td>#<%= u.id_usuario %></td>
-                                            <td>
-                                                <strong><%= u.nombre %></strong>
-                                                <br><small class="text-muted"><%= u.correo %></small>
-                                            </td>
-                                            <td>
-                                                <% if(u.rol === 'admin') { %>
-                                                    <span class="badge bg-danger">Administrador</span>
-                                                <% } else { %>
-                                                    <span class="badge bg-primary">Empleado</span>
-                                                <% } %>
-                                            </td>
-                                            <td>
-                                                <% if(u.nombre_concesionario) { %>
-                                                    <div class="d-flex align-items-center">
-                                                        <i class="bi bi-geo-alt-fill text-danger me-2"></i> 
-                                                        <span><%= u.nombre_concesionario %></span>
-                                                    </div>
-                                                <% } else { %>
-                                                    <span class="text-muted text-opacity-50 small font-italic">No asignado</span>
-                                                <% } %>
-                                            </td>
-                                            <td><%= u.telefono || '-' %></td>
+                                            <tr>
+                                                <td>#<%= u.id_usuario %></td>
+
+                                                <td>
+                                                    <strong><%= u.nombre %></strong>
+                                                    <br><small class="text-muted"><%= u.correo %></small>
+                                                </td>
+
+                                                <td>
+                                                    <% if(u.rol === 'admin') { %>
+                                                        <span class="badge bg-danger">Administrador</span>
+                                                    <% } else { %>
+                                                        <span class="badge bg-primary">Empleado</span>
+                                                    <% } %>
+                                                </td>
+
+                                                <td>
+                                                    <% if(u.nombre_concesionario) { %>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-geo-alt-fill text-danger me-2"></i> 
+                                                            <span><%= u.nombre_concesionario %></span>
+                                                        </div>
+                                                    <% } else { %>
+                                                        <span class="text-muted text-opacity-50 small font-italic">No asignado</span>
+                                                    <% } %>
+                                                </td>
+
+                                                <td><%= u.telefono || '-' %></td>
+
+                                                <td>
+                                                    <% if (u.id_usuario !== user.id_usuario) { %> 
+                                                        <form action="/admin/users/role" method="POST">
+                                                            <input type="hidden" name="id_usuario" value="<%= u.id_usuario %>">
+                                                            
+                                                            <% if(u.rol === 'empleado') { %>
+                                                                <input type="hidden" name="nuevo_rol" value="admin">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hacer Administrador">
+                                                                    <i class="bi bi-shield-lock-fill"></i> Ascender
+                                                                </button>
+                                                            <% } else { %>
+                                                                <input type="hidden" name="nuevo_rol" value="empleado">
+                                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Hacer Empleado">
+                                                                    <i class="bi bi-person-badge"></i> Degradar
+                                                                </button>
+                                                            <% } %>
+                                                        </form>
+                                                    <% } else { %>
+                                                        <span class="text-muted small">Tú</span>
+                                                    <% } %>
+                                                </td>
                                             </tr>
                                         <% }) %>
                                     <% } %>

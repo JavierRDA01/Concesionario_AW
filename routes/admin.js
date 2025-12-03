@@ -304,4 +304,21 @@ adminRouter.post('/reservations/cancel', verificarAdmin, (req, res) => {
         res.redirect('/admin/reservations');
     });
 });
+
+adminRouter.post('/users/role', verificarAdmin, (req, res) => {
+    const { id_usuario, nuevo_rol } = req.body;
+
+    // Evitar que un admin se quite permisos a sí mismo por error
+    if (parseInt(id_usuario) === req.session.user.id_usuario) {
+        return res.redirect('/admin/users');
+    }
+
+    userQueries.cambiarRolUsuario(id_usuario, nuevo_rol, (err) => {
+        if (err) {
+            // Manejo de error básico
+            return res.status(500).send("Error al cambiar el rol");
+        }
+        res.redirect('/admin/users');
+    });
+});
 module.exports = adminRouter;

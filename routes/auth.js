@@ -89,8 +89,7 @@ authRouter.post('/registro',
     }
     else{
         // Los datos son válidos, procedemos a registrar al usuario
-        const {nombre_completo, correo, password, telefono, rol, concesionario} = req.body;
-        
+const {nombre_completo, correo, password, telefono, concesionario} = req.body;       
         const saltRounds = 10;
 
         bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
@@ -104,10 +103,9 @@ authRouter.post('/registro',
                 nombre_completo : nombre_completo,
                 correo: correo,
                 password: hashedPassword, 
-                rol:rol,
-                telefono: telefono || null, // Asegura null si está vacío
+                rol: 'empleado',
+                telefono: telefono || null,
                 id_concesionario: concesionario,
-                // Almacenamos un JSON vacío por defecto
                 preferencias_accesibilidad: JSON.stringify({}) 
             };
             

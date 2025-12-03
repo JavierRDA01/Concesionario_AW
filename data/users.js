@@ -78,10 +78,21 @@ const actualizarPreferencias = (id_usuario, preferencias, callback) => {
         callback(null, result);
     });
 };
+const cambiarRolUsuario = (id_usuario, nuevo_rol, callback) => {
+    const sql = "UPDATE Usuarios SET rol = ? WHERE id_usuario = ?";
+    pool.query(sql, [nuevo_rol, id_usuario], (err, result) => {
+        if (err) {
+            console.error("Error cambiando rol:", err);
+            return callback(err);
+        }
+        callback(null, result);
+    });
+};
 module.exports = {
     registrarUsuario,
     obtenerUsuarioPorCorreo,
     obtenerTodosLosUsuarios,
     obtenerUsuarioPorId,
-    actualizarPreferencias 
+    actualizarPreferencias,
+    cambiarRolUsuario
 };
