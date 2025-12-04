@@ -10,33 +10,32 @@ const obtenerEstadisticasDashboard = (callback) => {
         reservasPorConcesionario: [],
         vehiculoMasUsado: null,
         kilometrosTotales: 0,
-        // Nuevas estadísticas
         estadoFlota: [], // Para el gráfico circular
         topUsuarios: [], // Lista de usuarios más activos
         duracionPromedio: 0 // Media en días
     };
 
-    // 1. Reservas Activas
+    // Reservas Activas
     pool.query("SELECT COUNT(*) AS total FROM Reservas WHERE estado = 'activa'", (err, res1) => {
         if (err) return callback(err);
         stats.reservasActivas = res1[0].total;
 
-        // 2. Vehículos Disponibles
+        // Vehículos Disponibles
         pool.query("SELECT COUNT(*) AS total FROM Vehiculos WHERE estado = 'disponible'", (err, res2) => {
             if (err) return callback(err);
             stats.vehiculosLibres = res2[0].total;
 
-            // 3. Incidencias
+            // Incidencias
             pool.query("SELECT COUNT(*) AS total FROM Reservas WHERE incidencias_reportadas IS NOT NULL AND incidencias_reportadas != ''", (err, res3) => {
                 if (err) return callback(err);
                 stats.incidencias = res3[0].total;
 
-                // 4. Total Usuarios
+                // Total Usuarios
                 pool.query("SELECT COUNT(*) AS total FROM Usuarios", (err, res4) => {
                     if (err) return callback(err);
                     stats.totalUsuarios = res4[0].total;
 
-                    // 5. Últimas 5 reservas
+                    // Últimas 5 reservas
                     const sqlUltimas = `
                         SELECT r.id_reserva, u.nombre as usuario, v.marca, v.modelo, v.matricula, r.estado 
                         FROM Reservas r
@@ -52,7 +51,7 @@ const obtenerEstadisticasDashboard = (callback) => {
                             estado: row.estado
                         }));
 
-                        // 6. Reservas por Concesionario
+                        // Reservas por Concesionario
                         const sqlConcesionarios = `
                             SELECT c.nombre, COUNT(r.id_reserva) as total 
                             FROM Reservas r
@@ -64,7 +63,7 @@ const obtenerEstadisticasDashboard = (callback) => {
                             if (err) return callback(err);
                             stats.reservasPorConcesionario = res6;
 
-                            // 7. Vehículo más usado
+                            // Vehículo más usado
                             const sqlMasUsado = `
                                 SELECT v.marca, v.modelo, v.matricula, COUNT(r.id_reserva) as total
                                 FROM Reservas r
@@ -76,21 +75,20 @@ const obtenerEstadisticasDashboard = (callback) => {
                                 if (err) return callback(err);
                                 stats.vehiculoMasUsado = res7.length > 0 ? res7[0] : null;
 
-                                // 8. Kilómetros Totales
+                                // Kilómetros Totales
                                 pool.query("SELECT SUM(kilometros_recorridos) as total FROM Reservas", (err, res8) => {
                                     if (err) return callback(err);
                                     stats.kilometrosTotales = res8[0].total || 0;
 
-                                    // --- NUEVAS CONSULTAS ---
                                     
-                                    // 9. Estado de la Flota (Para gráfico Pie)
+                                    // Estado de la Flota (Para gráfico Pie)
                                     // Cuenta cuántos coches hay en cada estado (disponible, reservado, mantenimiento)
                                     const sqlEstado = "SELECT estado, COUNT(*) as total FROM Vehiculos GROUP BY estado";
                                     pool.query(sqlEstado, (err, res9) => {
                                         if (err) return callback(err);
                                         stats.estadoFlota = res9;
 
-                                        // 10. Top 3 Usuarios
+                                        // Top 3 Usuarios
                                         const sqlTopUsers = `
                                             SELECT u.nombre, COUNT(r.id_reserva) as total
                                             FROM Reservas r
@@ -102,7 +100,7 @@ const obtenerEstadisticasDashboard = (callback) => {
                                             if (err) return callback(err);
                                             stats.topUsuarios = res10;
 
-                                            // 11. Duración Promedio de Reserva (en días)
+                                            // Duración Promedio de Reserva (en días)
                                             // DATEDIFF devuelve la diferencia en días
                                             const sqlAvg = "SELECT AVG(DATEDIFF(fecha_fin, fecha_inicio)) as promedio FROM Reservas WHERE estado != 'cancelada'";
                                             pool.query(sqlAvg, (err, res11) => {

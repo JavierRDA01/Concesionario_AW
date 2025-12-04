@@ -71,6 +71,10 @@
                                         <th>Imagen</th>
                                         <th>Marca / Modelo</th>
                                         <th>Matrícula</th>
+                                        
+                                        <th>Plazas</th>
+                                        <th>Autonomía</th>
+                                        <th>Color</th>
                                         <th>Concesionario</th>
                                         <th>Estado</th>
                                         <th class="text-end">Acciones</th>
@@ -78,7 +82,7 @@
                                 </thead>
                                 <tbody id="tbodyVehiculos">
                                     <% if(vehiculos.length === 0) { %>
-                                        <tr id="filaSinDatos"><td colspan="6" class="text-center py-3">No hay vehículos registrados.</td></tr>
+                                        <tr id="filaSinDatos"><td colspan="9" class="text-center py-3">No hay vehículos registrados.</td></tr>
                                     <% } else { %>
                                         <% vehiculos.forEach(v => { %>
                                         <tr id="fila-<%= v.id_vehiculo %>">
@@ -91,12 +95,23 @@
                                                     </div>
                                                 <% } %>
                                             </td>
+
                                             <td>
                                                 <strong><%= v.marca %></strong> <%= v.modelo %>
-                                                <br><small class="text-muted">Año: <%= v.año_matriculacion %></small>
+                                                <br><small class="text-muted">Año: <%= v.año_matriculacion || v.anio %></small>
                                             </td>
+
                                             <td><span class="badge bg-light text-dark border"><%= v.matricula %></span></td>
+
+                                            <td><i class="bi bi-people-fill text-muted"></i> <%= v.numero_plazas %></td>
+                                            <td><i class="bi bi-lightning-charge-fill text-warning"></i> <%= v.autonomia_km %> km</td>
+                                            <td>
+                                                <span class="d-inline-block rounded-circle border" style="width: 10px; height: 10px; background-color: <%= v.color %>;"></span> 
+                                                <%= v.color %>
+                                            </td>
+
                                             <td><%= v.nombre_concesionario %></td>
+
                                             <td id="celda-estado-<%= v.id_vehiculo %>">
                                                 <% if(v.estado === 'disponible') { %>
                                                     <span class="badge bg-success">Disponible</span>
@@ -106,6 +121,7 @@
                                                     <span class="badge bg-danger">Reservado</span>
                                                 <% } %>
                                             </td>
+
                                             <td class="text-end">
                                                 <button class="btn btn-sm btn-outline-dark me-1" 
                                                         onclick="abrirModalEstado('<%= v.id_vehiculo %>', '<%= v.estado %>', '<%= v.matricula %>')"
@@ -343,28 +359,57 @@
         }
 
         function generarHTMLFila(v, nombreConcesionario) {
+            // CORRECCIÓN 1: Unificar nombres de variables (Base de Datos vs Formulario)
+            // Si no existe el nombre de la BD, usa el del formulario
+            const plazas = v.numero_plazas || v.plazas;
+            const autonomia = v.autonomia_km || v.autonomia;
+            const anio = v.año_matriculacion || v.anio;
+            
+            // CORRECCIÓN 2: Si es nuevo, no tiene estado, así que forzamos 'disponible'
+            const estado = v.estado || 'disponible';
+            v.estado = estado; // Actualizamos el objeto para que el botón de editar lo tenga bien
+
+            // Lógica del Badge de Estado
             let badgeEstado = '';
-            if(v.estado === 'disponible') badgeEstado = '<span class="badge bg-success">Disponible</span>';
-            else if(v.estado === 'mantenimiento') badgeEstado = '<span class="badge bg-warning text-dark">Mantenimiento</span>';
+            if(estado === 'disponible') badgeEstado = '<span class="badge bg-success">Disponible</span>';
+            else if(estado === 'mantenimiento') badgeEstado = '<span class="badge bg-warning text-dark">Mantenimiento</span>';
             else badgeEstado = '<span class="badge bg-danger">Reservado</span>';
 
+            // Lógica de la Imagen
             let imgTag = (v.imagen && v.imagen !== 'default_car.jpg') 
                 ? `<img src="/img/${v.imagen}" class="rounded border" style="width: 50px; height: 35px; object-fit: cover;">`
                 : `<div class="bg-white border rounded d-flex align-items-center justify-content-center text-secondary" style="width: 50px; height: 35px;"><i class="bi bi-car-front-fill"></i></div>`;
 
-            // Escapar comillas para el JSON del onclick
+            // Escapar comillas para el JSON del botón
             const vString = JSON.stringify(v).replace(/"/g, '&quot;');
 
             return `
                 <td>${imgTag}</td>
-                <td><strong>${v.marca}</strong> ${v.modelo}<br><small class="text-muted">Año: ${v.año_matriculacion || v.anio}</small></td>
+                
+                <td>
+                    <strong>${v.marca}</strong> ${v.modelo}
+                    <br><small class="text-muted">Año: ${anio}</small>
+                </td>
+                
                 <td><span class="badge bg-light text-dark border">${v.matricula}</span></td>
+                
+                <td><i class="bi bi-people-fill text-muted"></i> ${plazas}</td>
+                
+                <td><i class="bi bi-lightning-charge-fill text-warning"></i> ${autonomia} km</td>
+                
+                <td>
+                    <span class="d-inline-block rounded-circle border" style="width: 10px; height: 10px; background-color: ${v.color};"></span> 
+                    ${v.color}
+                </td>
+                
                 <td>${nombreConcesionario}</td>
+                
                 <td id="celda-estado-${v.id_vehiculo}">${badgeEstado}</td>
+                
                 <td class="text-end">
-                    <button class="btn btn-sm btn-outline-dark me-1" onclick="abrirModalEstado('${v.id_vehiculo}', '${v.estado}', '${v.matricula}')"><i class="bi bi-gear-fill"></i></button>
-                    <button class="btn btn-sm btn-outline-primary me-1" onclick="abrirModalEditar(${vString})"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="abrirModalBorrar('${v.id_vehiculo}', '${v.matricula}')"><i class="bi bi-trash"></i></button>
+                    <button class="btn btn-sm btn-outline-dark me-1" onclick="abrirModalEstado('${v.id_vehiculo}', '${estado}', '${v.matricula}')" title="Cambiar Estado"><i class="bi bi-gear-fill"></i></button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="abrirModalEditar(${vString})" title="Editar Detalles"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="abrirModalBorrar('${v.id_vehiculo}', '${v.matricula}')" title="Eliminar"><i class="bi bi-trash"></i></button>
                 </td>
             `;
         }
@@ -386,9 +431,10 @@
             $("#edit_matricula").val(vehiculo.matricula);
             $("#edit_marca").val(vehiculo.marca);
             $("#edit_modelo").val(vehiculo.modelo);
+            // Usamos la misma lógica OR aquí también
             $("#edit_anio").val(vehiculo.año_matriculacion || vehiculo.anio);
-            $("#edit_plazas").val(vehiculo.numero_plazas);
-            $("#edit_autonomia").val(vehiculo.autonomia_km);
+            $("#edit_plazas").val(vehiculo.numero_plazas || vehiculo.plazas);
+            $("#edit_autonomia").val(vehiculo.autonomia_km || vehiculo.autonomia);
             $("#edit_color").val(vehiculo.color);
             $("#edit_concesionario").val(vehiculo.id_concesionario);
             $("#edit_current_imagen").val(vehiculo.imagen);
@@ -423,26 +469,22 @@
 
             // 1. CREAR VEHÍCULO (Multipart Form)
             $("#btnGuardarNuevo").click(function() {
-                // Usamos FormData para el envío de archivos
                 let formData = new FormData(document.getElementById("formNuevoVehiculo"));
-                
-                // Obtener texto del concesionario para la tabla
                 let nombreConc = $("#formNuevoVehiculo select[name='id_concesionario'] option:selected").text();
 
                 $.ajax({
                     url: '/admin/vehicles/new',
                     type: 'POST',
                     data: formData,
-                    processData: false, // Importante para FormData
-                    contentType: false, // Importante para FormData
+                    processData: false,
+                    contentType: false,
                     success: function(data) {
                         if(data.success) {
-                            // Cerrar modal
                             bootstrap.Modal.getInstance(document.getElementById('modalNuevoVehiculo')).hide();
                             $("#formNuevoVehiculo")[0].reset();
                             $("#filaSinDatos").remove();
 
-                            // Añadir fila
+                            // generarHTMLFila ahora manejará correctamente los campos y el estado
                             let nuevaFila = `<tr id="fila-${data.vehiculo.id_vehiculo}">${generarHTMLFila(data.vehiculo, nombreConc)}</tr>`;
                             $("#tbodyVehiculos").prepend(nuevaFila);
                             
@@ -471,7 +513,7 @@
                         if(data.success) {
                             bootstrap.Modal.getInstance(document.getElementById('modalEditarVehiculo')).hide();
                             
-                            // Actualizar fila
+                            // generarHTMLFila se encargará de mantener el estado disponible si viene vacío
                             $("#fila-" + data.vehiculo.id_vehiculo).html(generarHTMLFila(data.vehiculo, nombreConc));
                             
                             mostrarAlerta("Vehículo actualizado correctamente.", "success");
@@ -486,7 +528,6 @@
 
             // 3. CAMBIAR ESTADO (JSON)
             $("#btnGuardarEstado").click(function() {
-                // Serializar formulario a objeto JSON
                 let datos = {
                     id_vehiculo: $("#inputEstadoId").val(),
                     nuevo_estado: $("#selectEstado").val()
@@ -495,7 +536,7 @@
                 $.ajax({
                     url: '/admin/vehicles/status',
                     type: 'POST',
-                    contentType: 'application/json', // Como dice la presentación (Slide 80)
+                    contentType: 'application/json',
                     data: JSON.stringify(datos),
                     success: function(data) {
                         if(data.success) {
@@ -506,6 +547,8 @@
                             else if(datos.nuevo_estado === 'mantenimiento') celda.html('<span class="badge bg-warning text-dark">Mantenimiento</span>');
                             else celda.html('<span class="badge bg-danger">Reservado</span>');
 
+                            // Importante: Actualizar también los datos del botón si fuera necesario recargar la fila, 
+                            // pero como solo cambiamos la celda visual, está bien por ahora.
                             mostrarAlerta("Estado actualizado.", "success");
                         }
                     },

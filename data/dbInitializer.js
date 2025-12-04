@@ -13,7 +13,7 @@ const query = (sql, params) => {
 
 const initDB = async () => {
     try {
-        // 1. Comprobar si hay concesionarios (indicador de que la BD tiene datos)
+        // Comprobar si hay concesionarios (indicador de que la BD tiene datos)
         const result = await query("SELECT COUNT(*) as total FROM Concesionarios");
         
         if (result[0].total > 0) {
@@ -22,7 +22,7 @@ const initDB = async () => {
             console.log("Base de datos vacía. Se requerirá carga manual en el panel de administración.");
         }
 
-        // 2. Asegurar que existe al menos un Administrador para poder entrar a cargar los datos
+        // Asegurar que existe al menos un Administrador para poder entrar a cargar los datos
         const admins = await query("SELECT COUNT(*) as total FROM Usuarios WHERE rol='admin'");
         if (admins[0].total === 0) {
             console.log("No hay administradores. Creando admin por defecto...");

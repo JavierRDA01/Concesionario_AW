@@ -1,9 +1,10 @@
 const pool = require('./connection');
 
 const crearReserva = (reservaData, callback) => {
-    const { id_usuario, id_vehiculo, fecha_inicio, fecha_fin } = reservaData;
+    // 1. Añadimos kilometros e incidencias a la desestructuración
+    const { id_usuario, id_vehiculo, fecha_inicio, fecha_fin, kilometros_recorridos, incidencias_reportadas } = reservaData;
     
-    // 1. Validar disponibilidad (Doble check de seguridad)
+    // Validar disponibilidad (esto se mantiene igual)
     const checkSql = `
         SELECT * FROM Reservas 
         WHERE id_vehiculo = ? 
@@ -22,13 +23,14 @@ const crearReserva = (reservaData, callback) => {
             return callback(new Error("El vehículo no está disponible en esas fechas."));
         }
 
-        // 2. Insertar reserva
+        // 2. CORRECCIÓN: Añadimos las columnas y los valores en el INSERT
         const insertSql = `
-            INSERT INTO Reservas (id_usuario, id_vehiculo, fecha_inicio, fecha_fin, estado) 
-            VALUES (?, ?, ?, ?, 'activa')
+            INSERT INTO Reservas (id_usuario, id_vehiculo, fecha_inicio, fecha_fin, estado, kilometros_recorridos, incidencias_reportadas) 
+            VALUES (?, ?, ?, ?, 'activa', ?, ?)
         `;
         
-        pool.query(insertSql, [id_usuario, id_vehiculo, fecha_inicio, fecha_fin], (err, result) => {
+        // Añadimos los valores al array de parámetros
+        pool.query(insertSql, [id_usuario, id_vehiculo, fecha_inicio, fecha_fin, kilometros_recorridos || 0, incidencias_reportadas || null], (err, result) => {
             if (err) return callback(err);
             callback(null, result);
         });
@@ -37,7 +39,8 @@ const crearReserva = (reservaData, callback) => {
 
 const obtenerReservasDeUsuarioDetalladas = (idUsuario, callback) => {
     const sql = `
-        SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.estado, r.incidencias_reportadas,
+        SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.estado, 
+               r.incidencias_reportadas, r.kilometros_recorridos, 
                v.marca, v.modelo, v.matricula, v.imagen,
                c.nombre as nombre_concesionario, c.ciudad
         FROM Reservas r
