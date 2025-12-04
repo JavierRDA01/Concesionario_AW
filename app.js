@@ -6,7 +6,7 @@ const session = require('express-session');
 const mysqlSession = require("express-mysql-session");
 const MySQLStore = mysqlSession(session);
 
-// --- NUEVO: Importamos el script de inicialización ---
+// Importamos el script de inicialización 
 const initDB = require('./data/dbInitializer'); 
 
 const app = express();
@@ -45,13 +45,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.get('/', (req ,res)=>{
-    res.render('index') // Cambiado a index para mostrar la landing
+    res.render('index')
 })
 
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const reservationsRoutes = require('./routes/reservations');
-// Asegúrate de tener este archivo si usas rutas de usuario
 const usersRoutes = require('./routes/users'); 
 
 app.use('/', authRoutes);
@@ -63,7 +62,7 @@ app.use((req, res, next) => {
     res.status(404).render('404');
 });
 
-// 2. Manejo de Error 500 (Error interno)
+// Manejo de Error 500 (Error interno)
 app.use((err, req, res, next) => {
     console.error("ERROR DETECTADO:", err.stack); 
     
