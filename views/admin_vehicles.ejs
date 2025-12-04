@@ -359,7 +359,7 @@
         }
 
         function generarHTMLFila(v, nombreConcesionario) {
-            // CORRECCIÓN 1: Unificar nombres de variables (Base de Datos vs Formulario)
+            // Unificar nombres de variables (Base de Datos vs Formulario)
             // Si no existe el nombre de la BD, usa el del formulario
             const plazas = v.numero_plazas || v.plazas;
             const autonomia = v.autonomia_km || v.autonomia;
@@ -498,7 +498,7 @@
                 });
             });
 
-            // 2. EDITAR VEHÍCULO (Multipart Form)
+            // EDITAR VEHÍCULO (Multipart Form)
             $("#btnGuardarEdicion").click(function() {
                 let formData = new FormData(document.getElementById("formEditarVehiculo"));
                 let nombreConc = $("#formEditarVehiculo select[name='id_concesionario'] option:selected").text();
@@ -526,7 +526,7 @@
                 });
             });
 
-            // 3. CAMBIAR ESTADO (JSON)
+            // CAMBIAR ESTADO (JSON)
             $("#btnGuardarEstado").click(function() {
                 let datos = {
                     id_vehiculo: $("#inputEstadoId").val(),
@@ -547,7 +547,7 @@
                             else if(datos.nuevo_estado === 'mantenimiento') celda.html('<span class="badge bg-warning text-dark">Mantenimiento</span>');
                             else celda.html('<span class="badge bg-danger">Reservado</span>');
 
-                            // Importante: Actualizar también los datos del botón si fuera necesario recargar la fila, 
+                            // Actualizar también los datos del botón si fuera necesario recargar la fila, 
                             // pero como solo cambiamos la celda visual, está bien por ahora.
                             mostrarAlerta("Estado actualizado.", "success");
                         }
@@ -558,7 +558,7 @@
                 });
             });
 
-            // 4. BORRAR VEHÍCULO (JSON)
+            // BORRAR VEHÍCULO (JSON)
             $("#btnConfirmarBorrar").click(function() {
                 let id = $("#delete_id").val();
 

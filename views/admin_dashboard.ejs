@@ -279,31 +279,33 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Recibimos los datos del servidor EJS y los convertimos a JSON para usarlos en JS cliente
         const dataConcesionarios = <%- JSON.stringify(stats.reservasPorConcesionario) %>;
         const dataFlota = <%- JSON.stringify(stats.estadoFlota) %>;
 
-        // 1. Gráfico Barras: Reservas por Concesionario
+        // 1. Gráfico de Barras: Reservas por Concesionario
         const ctxConc = document.getElementById('chartConcesionarios').getContext('2d');
         new Chart(ctxConc, {
             type: 'bar',
             data: {
-                labels: dataConcesionarios.map(d => d.nombre),
+                labels: dataConcesionarios.map(d => d.nombre), // Eje X: Nombres de concesionarios
                 datasets: [{
                     label: 'Reservas',
-                    data: dataConcesionarios.map(d => d.total),
-                    backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                    data: dataConcesionarios.map(d => d.total), // Eje Y: Cantidad de reservas
+                    backgroundColor: 'rgba(220, 53, 69, 0.7)', // Color rojo Wibble
                     borderRadius: 4
                 }]
             },
             options: {
                 responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                plugins: { legend: { display: false } }, // Ocultamos la leyenda porque solo hay un dato
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } // Eje Y empieza en 0 y cuenta de 1 en 1
             }
         });
 
         // 2. Gráfico Circular: Estado de la Flota
         const estadosPosibles = ['disponible', 'reservado', 'mantenimiento'];
+        // Mapeamos los datos recibidos para asegurarnos de que el orden coincide con los colores
         const valoresFlota = estadosPosibles.map(estado => {
             const found = dataFlota.find(d => d.estado === estado);
             return found ? found.total : 0;
@@ -316,14 +318,14 @@
                 labels: ['Disponible', 'Reservado', 'Mantenimiento'],
                 datasets: [{
                     data: valoresFlota,
-                    backgroundColor: ['#198754', '#dc3545', '#ffc107'],
+                    backgroundColor: ['#198754', '#dc3545', '#ffc107'], // Verde, Rojo, Amarillo
                     hoverOffset: 4
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom' } }
+                maintainAspectRatio: false, // Para que se ajuste al contenedor
+                plugins: { legend: { position: 'bottom' } } // Leyenda abajo
             }
         });
     </script>

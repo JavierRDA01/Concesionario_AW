@@ -1,5 +1,6 @@
 const pool = require('./connection');
 
+// Función auxiliar para poder usar async/await en las consultas a la base de datos
 const query = (sql, params) => {
     return new Promise((resolve, reject) => {
         pool.query(sql, params, (err, res) => {
@@ -9,26 +10,30 @@ const query = (sql, params) => {
     });
 };
 
+// Analiza el JSON subido y clasifica los datos antes de guardarlos
 const procesarArchivoJSON = async (jsonData) => {
     const reporte = {
         concesionariosNuevos: 0,
         concesionariosExistentes: 0,
         vehiculosNuevos: [],
-        vehiculosConflictivos: [],
+        vehiculosConflictivos: [], // Vehículos que ya existen (misma matrícula)
         errores: []
     };
 
     try {
+        // Recorremos cada concesionario del archivo JSON
         for (const conc of jsonData) {
             let idConcesionario = null;
 
-            // 1. Buscar o Crear Concesionario
+            // 1. Buscamos si el concesionario ya existe en la BD por su nombre
             const resConc = await query("SELECT id_concesionario FROM Concesionarios WHERE nombre = ?", [conc.nombre]);
 
             if (resConc.length > 0) {
+                // Si existe, cogemos su ID
                 idConcesionario = resConc[0].id_concesionario;
                 reporte.concesionariosExistentes++;
             } else {
+                // Si no existe, lo creamos y guardamos el ID generado
                 const insertConc = await query(
                     "INSERT INTO Concesionarios (nombre, ciudad, direccion, telefono_contacto) VALUES (?, ?, ?, ?)",
                     [conc.nombre, conc.ciudad, conc.direccion, conc.telefono]
@@ -37,17 +42,20 @@ const procesarArchivoJSON = async (jsonData) => {
                 reporte.concesionariosNuevos++;
             }
 
-            // 2. Procesar Vehículos
+            // 2. Procesamos los vehículos de ese concesionario
             if (conc.vehiculos && conc.vehiculos.length > 0) {
                 for (const v of conc.vehiculos) {
+                    // Comprobamos si la matrícula ya existe
                     const resVeh = await query("SELECT id_vehiculo FROM Vehiculos WHERE matricula = ?", [v.matricula]);
                     
-                    // Añadimos el ID del concesionario al objeto del vehículo
+                    // Preparamos los datos del vehículo añadiendo el ID del concesionario correcto
                     const vehiculoData = { ...v, id_concesionario: idConcesionario };
 
                     if (resVeh.length > 0) {
+                        // Si ya existe, lo marcamos como conflictivo (para preguntar si actualizar)
                         reporte.vehiculosConflictivos.push(vehiculoData);
                     } else {
+                        // Si no existe, es un vehículo nuevo
                         reporte.vehiculosNuevos.push(vehiculoData);
                     }
                 }
@@ -61,10 +69,11 @@ const procesarArchivoJSON = async (jsonData) => {
     }
 };
 
+// Ejecuta las inserciones y actualizaciones finales en la BD
 const ejecutarImportacion = async (vehiculosNuevos, vehiculosAActualizar) => {
     const logs = { insertados: 0, actualizados: 0, errores: [] };
 
-    // Insertar Nuevos
+    // 1. Insertar Vehículos Nuevos
     for (const v of vehiculosNuevos) {
         try {
             await query(
@@ -78,7 +87,7 @@ const ejecutarImportacion = async (vehiculosNuevos, vehiculosAActualizar) => {
         }
     }
 
-    // Actualizar Existentes
+    // 2. Actualizar Vehículos Existentes (si el usuario lo confirmó)
     for (const v of vehiculosAActualizar) {
         try {
             await query(

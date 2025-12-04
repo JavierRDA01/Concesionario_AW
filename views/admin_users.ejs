@@ -131,7 +131,7 @@
                 
                 success: function(data) {
                     if (data.success) {
-                        // 1. Actualizar visualmente el Badge de Rol
+                        // Actualizar visualmente el Badge de Rol
                         const $celdaBadge = $("#rol-badge-" + idUsuario);
                         
                         if (nuevoRol === 'admin') {
@@ -140,7 +140,7 @@
                             $celdaBadge.html('<span class="badge bg-primary">Empleado</span>');
                         }
 
-                        // 2. Actualizar visualmente el Botón de Acción
+                        // Actualizar visualmente el Botón de Acción
                         const $celdaBtn = $("#accion-btn-" + idUsuario);
                         
                         if (nuevoRol === 'admin') {

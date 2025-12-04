@@ -120,16 +120,18 @@
     <script src="/js/jquery.min.js"></script> <script src="/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Esperamos a que el documento HTML cargue por completo
         $(document).ready(function() {
             
+            // Evento click en el botón "Guardar" del modal
             $("#btnGuardar").click(function(e) {
-                e.preventDefault();
+                e.preventDefault(); // Evitamos que el botón haga submit y recargue la página
                 
-                const $btn = $(this);
-                const $errorAlert = $("#errorModal");
+                const $btn = $(this); // Guardamos referencia al botón
+                const $errorAlert = $("#errorModal"); // Guardamos referencia a la alerta de error del modal
                 
-                // Recoger datos del formulario manualmente
-                // Nota: SerializeArray o la construcción manual de objeto es típica en jQuery
+                // Recogemos los datos de los inputs del formulario manualmente
+                // Creamos un objeto JavaScript con ellos
                 const datos = {
                     nombre: $('input[name="nombre"]').val(),
                     ciudad: $('input[name="ciudad"]').val(),
@@ -137,36 +139,39 @@
                     direccion: $('input[name="direccion"]').val()
                 };
 
-                // Validar campos vacíos en cliente (opcional pero recomendado)
+                // Validación simple en el cliente antes de enviar
+                // Si faltan campos obligatorios, mostramos error y paramos
                 if(!datos.nombre || !datos.ciudad || !datos.direccion) {
                     $errorAlert.text("Por favor, rellena los campos obligatorios.").removeClass("d-none");
                     return;
                 }
 
-                // Estado de carga
+                // Cambiamos el estado del botón a "cargando" para que el usuario sepa que está pasando algo
                 $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm"></span> Guardando...');
-                $errorAlert.addClass("d-none");
+                $errorAlert.addClass("d-none"); // Ocultamos alertas de error previas
 
-                // LLAMADA AJAX (Formato Presentación)
+                // Hacemos la petición AJAX al servidor
                 $.ajax({
-                    type: "POST",
-                    url: "/admin/dealerships/new",
-                    contentType: "application/json",
-                    data: JSON.stringify(datos),
+                    type: "POST", // Tipo de petición
+                    url: "/admin/dealerships/new", // Ruta del servidor que procesará los datos
+                    contentType: "application/json", // Indicamos que enviamos JSON
+                    data: JSON.stringify(datos), // Convertimos el objeto JS a texto JSON
                     
+                    // Si la petición es exitosa (código 200)
                     success: function(data, textStatus, jqXHR) {
                         if (data.success) {
-                            // 1. Cerrar modal (Usamos API de Bootstrap nativa o wrapper jQuery si disponible)
+                            // 1. Cerramos el modal usando la API de Bootstrap
                             const modalElement = document.getElementById('modalNuevoConcesionario');
                             const modalInstance = bootstrap.Modal.getInstance(modalElement);
                             modalInstance.hide();
 
-                            // 2. Resetear formulario
+                            // 2. Limpiamos el formulario para la próxima vez
                             $('#formNuevoConcesionario')[0].reset();
 
-                            // 3. Añadir fila a la tabla
-                            $('#filaSinDatos').remove(); // Si existía, fuera
+                            // 3. Actualizamos la tabla sin recargar la página
+                            $('#filaSinDatos').remove(); // Si había un mensaje de "No hay datos", lo quitamos
 
+                            // Creamos el HTML de la nueva fila con los datos que devolvió el servidor
                             const nuevaFila = `
                                 <tr class="table-success">
                                     <td>#${data.concesionario.id_concesionario}</td>
@@ -177,14 +182,15 @@
                                 </tr>
                             `;
                             
+                            // Añadimos la fila al final de la tabla
                             $('#tbodyConcesionarios').append(nuevaFila);
 
-                            // Quitar color verde tras 2 segundos
+                            // Efecto visual: quitamos el color verde de "nuevo" tras 2 segundos
                             setTimeout(function() {
                                 $('#tbodyConcesionarios tr:last-child').removeClass('table-success');
                             }, 2000);
 
-                            // Alerta de éxito
+                            // Mostramos una alerta de éxito global en la página
                             $('#alertaDinamica').html(`
                                 <div class="alert alert-success alert-dismissible fade show shadow-sm border-start border-success border-4" role="alert">
                                     <i class="bi bi-check-circle-fill"></i> Concesionario creado correctamente.
@@ -193,22 +199,25 @@
                             `);
 
                         } else {
-                            // Error de lógica (ej. validación servidor)
+                            // Si el servidor responde OK pero con un error lógico (ej: validación fallida en backend)
                             $errorAlert.text(data.message).removeClass('d-none');
                         }
                     },
                     
+                    // Si la petición falla (error de red, 500, 404...)
                     error: function(jqXHR, textStatus, errorThrown) {
-                        // Error de red o servidor (500, 404, etc.)
                         let msg = "Error de conexión con el servidor.";
+                        // Intentamos leer el mensaje de error que envió el servidor en formato JSON
                         if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
                             msg = jqXHR.responseJSON.message;
                         }
+                        // Mostramos el error en el modal
                         $errorAlert.text(msg).removeClass('d-none');
                     },
                     
+                    // Esto se ejecuta siempre, haya éxito o error
                     complete: function() {
-                        // Restaurar botón siempre
+                        // Restauramos el botón a su estado original para que se pueda volver a usar
                         $btn.prop("disabled", false).text("Guardar Concesionario");
                     }
                 });

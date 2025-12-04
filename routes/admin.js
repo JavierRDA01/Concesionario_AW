@@ -2,13 +2,17 @@ const express = require('express');
 const adminRouter = express.Router();
 const path = require('path');
 const multer = require('multer');
+
+// Importamos los archivos que contienen las funciones para hablar con la base de datos
 const adminQueries = require('../data/admin');
 const vehiclesQueries = require('../data/vehicles');
 const dealershipsQueries = require('../data/dealerships');
-const importQueries = require('../data/import'); // <--- IMPORTANTE
-const userQueries = require('../data/users'); // <--- ¡ESTA ES LA LÍNEA QUE FALTABA!
-const reservationsQueries = require('../data/reservations'); // <--- ¡AÑADIDO!
-// Configuración de subida para IMÁGENES (Disco)
+const importQueries = require('../data/import'); 
+const userQueries = require('../data/users'); 
+const reservationsQueries = require('../data/reservations'); 
+
+// Configuración de Multer para subir imágenes
+// Las guarda en la carpeta 'public/img' y les pone un nombre único con la fecha
 const storageImg = multer.diskStorage({
     destination: function (req, file, cb) { cb(null, 'public/img'); },
     filename: function (req, file, cb) {
@@ -16,6 +20,8 @@ const storageImg = multer.diskStorage({
         cb(null, 'vehiculo-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
+
+// Filtro para asegurar que solo se suben archivos de imagen
 const uploadImg = multer({ 
     storage: storageImg,
     fileFilter: (req, file, cb) => {
@@ -24,10 +30,11 @@ const uploadImg = multer({
     }
 });
 
-// Configuración de subida para JSON (Memoria)
+// Configuración para subir archivos JSON (se guardan en la memoria RAM temporalmente para leerlos)
 const uploadJSON = multer({ storage: multer.memoryStorage() });
 
-// Middleware: Verificar Admin
+// Middleware de seguridad: comprueba si el usuario es administrador
+// Si no lo es, lo manda al login
 const verificarAdmin = (req, res, next) => {
     if (req.session.user && req.session.user.rol === 'admin') {
         return next();
@@ -35,15 +42,17 @@ const verificarAdmin = (req, res, next) => {
     return res.redirect('/login'); 
 };
 
-// Middleware: Verificar BD Vacía (Obliga a importar)
+// Si no hay concesionarios en la BD, obliga a ir a la página de importación
+// Esto sirve para la carga inicial
 const checkDBEmpty = (req, res, next) => {
-    // Si ya estamos en las rutas de importación, dejamos pasar para no hacer bucle infinito
+    // Si ya estamos en la página de importar, dejamos pasar para no crear un bucle infinito
     if (req.path.startsWith('/import')) {
         return next();
     }
 
     dealershipsQueries.obtenerConcesionarios((err, result) => {
         if (err) return next();
+        // Si la lista de concesionarios está vacía, redirigimos a importar
         if (result.length === 0) {
             req.session.error_msg = "ATENCIÓN: La base de datos está vacía. Es obligatorio realizar una carga inicial de datos (JSON).";
             return req.session.save(() => res.redirect('/admin/import'));
@@ -52,26 +61,31 @@ const checkDBEmpty = (req, res, next) => {
     });
 };
 
-// Aplicamos middlewares globales a todo /admin
+// Aplicamos los middlewares a todas las rutas de este archivo
 adminRouter.use(verificarAdmin);
 adminRouter.use(checkDBEmpty);
 
 
-// --- RUTAS DE IMPORTACIÓN ---
+// --- RUTAS DE IMPORTACIÓN (JSON) ---
 
+// Muestra la pantalla para subir el fichero JSON
 adminRouter.get('/import', (req, res) => {
     const error_msg = req.session.error_msg;
     delete req.session.error_msg;
     res.render('admin_import', { user: req.session.user, error_msg: error_msg });
 });
 
+// Recibe el archivo JSON, lo lee y muestra una vista previa de lo que va a pasar
 adminRouter.post('/import/preview', uploadJSON.single('fichero_json'), async (req, res) => {
     try {
         if (!req.file) return res.render('admin_import', { user: req.session.user, error_msg: "Sube un archivo JSON." });
         
+        // Convertimos el archivo subido a un objeto de JavaScript
         const jsonData = JSON.parse(req.file.buffer.toString());
+        // Procesamos los datos para ver cuáles son nuevos y cuáles conflictivos
         const reporte = await importQueries.procesarArchivoJSON(jsonData);
         
+        // Guardamos los datos en la sesión temporalmente para usarlos en el siguiente paso (confirmación)
         req.session.importData = { nuevos: reporte.vehiculosNuevos, conflictivos: reporte.vehiculosConflictivos };
         
         res.render('admin_import_preview', { user: req.session.user, reporte: reporte });
@@ -80,14 +94,17 @@ adminRouter.post('/import/preview', uploadJSON.single('fichero_json'), async (re
     }
 });
 
+// Ejecuta la importación real en la base de datos
 adminRouter.post('/import/confirm', async (req, res) => {
     try {
         const importData = req.session.importData;
         if (!importData) return res.redirect('/admin/import');
 
+        // Si el usuario marcó el checkbox de actualizar, usamos los conflictivos. Si no, los ignoramos.
         const vehiculosAActualizar = (req.body.actualizar === 'yes') ? importData.conflictivos : [];
         const logs = await importQueries.ejecutarImportacion(importData.nuevos, vehiculosAActualizar);
         
+        // Borramos los datos temporales de la sesión
         delete req.session.importData;
         res.render('admin_import_result', { user: req.session.user, logs: logs });
     } catch (error) {
@@ -98,6 +115,7 @@ adminRouter.post('/import/confirm', async (req, res) => {
 
 // --- RUTAS DEL DASHBOARD Y GESTIÓN ---
 
+// Muestra el panel principal con estadísticas y gráficos
 adminRouter.get('/dashboard', (req, res) => {
     adminQueries.obtenerEstadisticasDashboard((err, stats) => {
         if (err) return res.status(500).send("Error del servidor");
@@ -105,9 +123,11 @@ adminRouter.get('/dashboard', (req, res) => {
     });
 });
 
+// Muestra la tabla de gestión de vehículos
 adminRouter.get('/vehicles', (req, res) => {
     vehiclesQueries.obtenerTodosLosVehiculos((err, vehiculos) => {
         if (err) return res.status(500).send("Error cargando vehículos");
+        // También necesitamos los concesionarios para el select del modal de crear/editar
         dealershipsQueries.obtenerConcesionarios((errC, concesionarios) => {
             if (errC) return res.status(500).send("Error cargando concesionarios");
             
@@ -124,16 +144,18 @@ adminRouter.get('/vehicles', (req, res) => {
     });
 });
 
+// Crea un nuevo vehículo (con subida de imagen)
 adminRouter.post('/vehicles/new', verificarAdmin, uploadImg.single('imagen'), (req, res) => {
     let matricula = req.body.matricula ? req.body.matricula.toUpperCase().trim() : '';
     
-    // Validación básica de matrícula
+    // Validación básica de formato de matrícula
     if (!/^\d{4}-[A-Z]{3}$/.test(matricula)) {
-        // En lugar de renderizar o redirigir, devolvemos JSON con error
         return res.status(400).json({ success: false, message: 'Formato de matrícula incorrecto (Ej: 1234-ABC).' });
     }
 
+    // Si no hay imagen, usamos la de por defecto
     const imagenNombre = req.file ? req.file.filename : 'default_car.jpg';
+    
     const newCar = {
         matricula: matricula,
         marca: req.body.marca,
@@ -148,18 +170,20 @@ adminRouter.post('/vehicles/new', verificarAdmin, uploadImg.single('imagen'), (r
     
     vehiclesQueries.crearVehiculo(newCar, (err, result) => {
         if (err) {
+            // Controlamos el error específico de matrícula duplicada
             if (err.code === 'ER_DUP_ENTRY') {
                 return res.status(400).json({ success: false, message: `La matrícula ${matricula} ya existe.` });
             }
             return res.status(500).json({ success: false, message: 'Error interno al crear vehículo.' });
         }
 
-        // Devolvemos éxito y el ID del nuevo vehículo para que el frontend pueda añadir la fila
+        // Devolvemos éxito y los datos para que la web actualice la tabla sin recargar
         newCar.id_vehiculo = result.insertId;
         res.json({ success: true, vehiculo: newCar });
     });
 });
 
+// Listado de todas las reservas del sistema
 adminRouter.get('/reservations', verificarAdmin, (req, res) => {
     reservationsQueries.obtenerTodasLasReservasDetalladas((err, reservas) => {
         if (err) {
@@ -174,6 +198,7 @@ adminRouter.get('/reservations', verificarAdmin, (req, res) => {
     });
 });
 
+// Listado de usuarios (para cambiar roles)
 adminRouter.get('/users', verificarAdmin, (req, res) => {
     userQueries.obtenerTodosLosUsuarios((err, users) => {
         if (err) {
@@ -186,7 +211,7 @@ adminRouter.get('/users', verificarAdmin, (req, res) => {
     });
 });
 
-// GET: Listar concesionarios
+// Listado de concesionarios
 adminRouter.get('/dealerships', verificarAdmin, (req, res) => {
     dealershipsQueries.obtenerConcesionarios((err, concesionarios) => {
         if (err) return res.status(500).send("Error al cargar concesionarios");
@@ -194,40 +219,37 @@ adminRouter.get('/dealerships', verificarAdmin, (req, res) => {
         res.render('admin_dealerships', {
             concesionarios: concesionarios,
             user: req.session.user,
-            error: req.query.error // Para mostrar alerta si falla al crear
+            error: req.query.error 
         });
     });
 });
 
+// Crea un nuevo concesionario
 adminRouter.post('/dealerships/new', verificarAdmin, (req, res) => {
     const { nombre, ciudad, direccion, telefono } = req.body;
     
-    // 1. Validación básica
+    // Validación simple de campos obligatorios
     if (!nombre || !ciudad || !direccion) {
-        // En lugar de redirigir con ?error=..., devolvemos un JSON con status 400
         return res.status(400).json({ 
             success: false, 
             message: 'Faltan datos obligatorios (Nombre, Ciudad o Dirección).' 
         });
     }
 
-    // 2. Llamada a base de datos
     dealershipsQueries.crearConcesionario({ nombre, ciudad, direccion, telefono }, (err, result) => {
         if (err) {
             console.error(err);
-            // Error de servidor, devolvemos JSON con status 500
             return res.status(500).json({ 
                 success: false, 
                 message: 'Error al crear el concesionario en la base de datos.' 
             });
         }
         
-        // 3. ÉXITO: Devolvemos JSON con success: true y los datos del nuevo objeto
-        // Necesitamos devolver el objeto para que el AJAX pueda pintar la fila nueva
+        // Devolvemos el nuevo concesionario creado para actualizar la tabla visualmente
         res.json({
             success: true,
             concesionario: {
-                id_concesionario: result.insertId, // ID generado por MySQL
+                id_concesionario: result.insertId,
                 nombre: nombre,
                 ciudad: ciudad,
                 direccion: direccion,
@@ -236,7 +258,8 @@ adminRouter.post('/dealerships/new', verificarAdmin, (req, res) => {
         });
     });
 });
-// 3. POST: Cambiar estado
+
+// Actualiza el estado de un vehículo (AJAX)
 adminRouter.post('/vehicles/status', verificarAdmin, (req, res) => {
     const { id_vehiculo, nuevo_estado } = req.body;
     
@@ -247,10 +270,11 @@ adminRouter.post('/vehicles/status', verificarAdmin, (req, res) => {
         res.json({ success: true, nuevo_estado });
     });
 });
-// 2. POST: Editar vehículo
+
+// Edita un vehículo existente
 adminRouter.post('/vehicles/edit', verificarAdmin, uploadImg.single('imagen'), (req, res) => {
     const id = req.body.id_vehiculo;
-    // Si suben imagen nueva la usamos, si no, mantenemos la antigua (hidden input)
+    // Si suben imagen nueva, la usamos. Si no, mantenemos la que ya tenía.
     const imagenFinal = req.file ? req.file.filename : req.body.current_imagen;
 
     const updatedCar = {
@@ -270,17 +294,16 @@ adminRouter.post('/vehicles/edit', verificarAdmin, uploadImg.single('imagen'), (
             return res.status(500).json({ success: false, message: 'Error al actualizar el vehículo.' });
         }
         
-        // Devolvemos los datos actualizados
         updatedCar.id_vehiculo = id;
         res.json({ success: true, vehiculo: updatedCar });
     });
 });
 
-//  POST: Eliminar vehículo
+// Elimina un vehículo
 adminRouter.post('/vehicles/delete', verificarAdmin, (req, res) => {
     const id = req.body.id_vehiculo;
 
-    // Primero verificamos si tiene reservas activas (función que ya tenías en reservations.js)
+    // Seguridad: Primero comprobamos si tiene reservas activas en el futuro
     reservationsQueries.verificarReservasActivasVehiculo(id, (err, tieneReservasActivas) => {
         if (err) {
             return res.status(500).json({ success: false, message: 'Error técnico verificando reservas.' });
@@ -290,15 +313,17 @@ adminRouter.post('/vehicles/delete', verificarAdmin, (req, res) => {
             return res.status(400).json({ success: false, message: 'DENEGADO: El vehículo tiene reservas activas o futuras.' });
         }
 
+        // Si no tiene reservas activas, procedemos a borrar
         vehiclesQueries.eliminarVehiculo(id, (err) => {
             if (err) {
-                // Error probable por claves foráneas (historial antiguo)
                 return res.status(400).json({ success: false, message: 'No se puede eliminar porque tiene historial. Pásalo a Mantenimiento.' });
             }
             res.json({ success: true });
         });
     });
 });
+
+// Cancela una reserva de forma forzosa (admin)
 adminRouter.post('/reservations/cancel', verificarAdmin, (req, res) => {
     const { id_reserva } = req.body;
 
@@ -314,9 +339,12 @@ adminRouter.post('/reservations/cancel', verificarAdmin, (req, res) => {
         res.json({ success: true, message: 'Reserva cancelada correctamente.' });
     });
 });
+
+// Cambia el rol de un usuario (Admin <-> Empleado)
 adminRouter.post('/users/role', verificarAdmin, (req, res) => {
     const { id_usuario, nuevo_rol } = req.body;
 
+    //No permitir cambiarse el rol a uno mismo para no perder acceso admin
     if (parseInt(id_usuario) === req.session.user.id_usuario) {
         return res.status(400).json({ success: false, message: "No puedes modificar tu propio rol." });
     }
@@ -326,8 +354,9 @@ adminRouter.post('/users/role', verificarAdmin, (req, res) => {
             console.error(err);
             return res.status(500).json({ success: false, message: "Error al actualizar en base de datos." });
         }
-        // ÉXITO: Devolvemos JSON en lugar de redirect
+        
         res.json({ success: true, nuevo_rol: nuevo_rol, id_usuario: id_usuario });
     });
 });
+
 module.exports = adminRouter;
