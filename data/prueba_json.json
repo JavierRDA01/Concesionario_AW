@@ -1,0 +1,48 @@
+[
+    {
+        "nombre": "Wibble Norte Test",
+        "ciudad": "Bilbao",
+        "direccion": "Gran Vía de Don Diego López de Haro, 1",
+        "telefono": "944000111",
+        "vehiculos": [
+            {
+                "matricula": "0000-TST",
+                "marca": "Tesla",
+                "modelo": "Model Y",
+                "anio": 2024,
+                "plazas": 5,
+                "autonomia": 533,
+                "color": "Negro",
+                "imagen": "tesla_model_y.jpg"
+            },
+            {
+                "matricula": "1111-PRB",
+                "marca": "Volkswagen",
+                "modelo": "ID.4",
+                "anio": 2023,
+                "plazas": 5,
+                "autonomia": 500,
+                "color": "Blanco",
+                "imagen": ""
+            }
+        ]
+    },
+    {
+        "nombre": "Wibble Sur Test",
+        "ciudad": "Sevilla",
+        "direccion": "Av. de la Constitución, 10",
+        "telefono": "954000222",
+        "vehiculos": [
+            {
+                "matricula": "2222-DEV",
+                "marca": "Hyundai",
+                "modelo": "Ioniq 5",
+                "anio": 2022,
+                "plazas": 5,
+                "autonomia": 480,
+                "color": "Gris",
+                "imagen": "ioniq5.jpg"
+            }
+        ]
+    }
+]
