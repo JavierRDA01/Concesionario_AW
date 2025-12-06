@@ -62,6 +62,33 @@
 
                 <div id="alertaDinamica"></div>
 
+                <div class="row mb-3" style="max-width: 600px;">
+                    <div class="col">
+                        <label for="filterConcesionario" class="form-label fw-bold">
+                            <i class="bi bi-funnel"></i> Filtrar por Concesionario
+                        </label>
+                        <select id="filterConcesionario" class="form-select">
+                            <option value="">Todos los Concesionarios</option>
+                                <% concesionarios?.forEach(c => { %>
+                            <option value="<%= c.id_concesionario %>"><%= c.nombre %></option>
+                                <% }) %>
+                        </select>
+                    </div>
+
+                    <div class="col">
+                        <label for="filterConcesionarioCiudad" class="form-label fw-bold">
+                            <i class="bi bi-funnel"></i> Filtrar por Ciudad
+                        </label>
+                        <select id="filterConcesionarioCiudad" class="form-select">
+                            <option value="">Todas las Ciudades</option>
+                                <% concesionarios?.forEach(c => { %>
+                            <option value="<%= c.nombre %>"><%= c.ciudad %></option>
+                                <% }) %>
+                        </select>
+                    </div>
+                </div>
+
+
                 <div class="card shadow-sm border-top">
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -579,6 +606,79 @@
                         $("#errorBorrar").text(msg).removeClass("d-none");
                     }
                 });
+            });
+
+            // FILTRO POR CONCESIONARIO
+            $("#filterConcesionario").change(function() {
+                const selectedId = $(this).val();
+                
+                // Si no hay selección, mostrar todos
+                if (selectedId === '') {
+                    $("#tbodyVehiculos tr").show();
+                } else {
+                    // Ocultar todas las filas
+                    $("#tbodyVehiculos tr").hide();
+                    
+                    // Mostrar solo las que coinciden con el concesionario seleccionado
+                    // Buscamos en la celda que contiene el nombre del concesionario (penúltima columna antes de Estado)
+                    $("#tbodyVehiculos tr").each(function() {
+                        // Obtenemos el id_concesionario del data attribute o lo extraemos de la fila
+                        // Alternativamente, podemos comparar por el nombre del concesionario
+                        const cells = $(this).find('td');
+                        // La columna de Concesionario está en el índice 6 (0-indexed)
+                        const concesionarioCell = cells.eq(6).text().trim();
+                        
+                        // Obtener el nombre del concesionario seleccionado
+                        const selectedName = $("#filterConcesionario option:selected").text().trim();
+                        
+                        if (concesionarioCell === selectedName) {
+                            $(this).show();
+                        }
+                    });
+                }
+                
+                // Verificar si no hay resultados
+                if ($("#tbodyVehiculos tr:visible").length === 0) {
+                    // Crear una fila temporal de "sin resultados"
+                    if ($("#filaSinDatos").length === 0) {
+                        $("#tbodyVehiculos").append('<tr id="filaSinDatos"><td colspan="9" class="text-center py-3">No hay vehículos en este concesionario.</td></tr>');
+                    }
+                }
+            });
+
+            $("#filterConcesionarioCiudad").change(function() {
+                const selectedId = $(this).val();
+                
+                // Si no hay selección, mostrar todos
+                if (selectedId === '') {
+                    $("#tbodyVehiculos tr").show();
+                } else {
+                    // Ocultar todas las filas
+                    $("#tbodyVehiculos tr").hide();
+                    
+                    $("#tbodyVehiculos tr").each(function() {
+                        // Obtenemos el id_concesionario del data attribute o lo extraemos de la fila
+                        // Alternativamente, podemos comparar por el nombre del concesionario
+                        const cells = $(this).find('td');
+                        // La columna de Concesionario está en el índice 6 (0-indexed)
+                        const concesionarioCell = cells.eq(6).text().trim();
+                        
+                        // Obtener el nombre del concesionario seleccionado
+                        const selectedName = $("#filterConcesionarioCiudad option:selected").val();
+                        
+                        if (concesionarioCell === selectedName) {
+                            $(this).show();
+                        }
+                    });
+                }
+                
+                // Verificar si no hay resultados
+                if ($("#tbodyVehiculos tr:visible").length === 0) {
+                    // Crear una fila temporal de "sin resultados"
+                    if ($("#filaSinDatos").length === 0) {
+                        $("#tbodyVehiculos").append('<tr id="filaSinDatos"><td colspan="9" class="text-center py-3">No hay vehículos en este concesionario.</td></tr>');
+                    }
+                }
             });
 
         });
