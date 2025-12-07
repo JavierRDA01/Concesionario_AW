@@ -225,7 +225,7 @@
                                     <option value="" selected disabled>Selecciona una ubicación...</option>
                                     <% if (concesionarios && concesionarios.length > 0) { %>
                                         <% concesionarios.forEach(c => { %>
-                                            <option value="<%= c.id_concesionario %>"><%= c.nombre %> (<%= c.ciudad %>)</option>
+                                            <option value="<%= c.id_concesionario %>"><%= c.nombre %></option>
                                         <% }) %>
                                     <% } %>
                                 </select>
